@@ -11,7 +11,7 @@ public class UploadTestUi {
     public static void main(String[] args) 
     {
         try 
-        {
+        { 
             BytecodeUploader bu = new BytecodeUploader(null, 9600);
             bu.transmitCode("abcdefghijklmnopqrstuvwxyz".getBytes("UTF8"), 5);
         } 

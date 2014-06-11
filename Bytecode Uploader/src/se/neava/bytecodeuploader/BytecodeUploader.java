@@ -64,7 +64,7 @@ public class BytecodeUploader
         if(sending)
             throw new BusyException();
     
-        sending = true;
+        sending = true; 
         this.code = code.clone();
         this.chunkSize = chunkSize;
         int dataLength = code.length;
