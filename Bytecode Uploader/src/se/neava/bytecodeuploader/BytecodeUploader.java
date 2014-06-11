@@ -67,12 +67,12 @@ public class BytecodeUploader
         sending = true;
         this.code = code.clone();
         this.chunkSize = chunkSize;
-        int dataLength = (byte) Math.min(chunkSize, code.length);
-        byte bytes[] = { FRAME_DELIMITER, INITSEND_HEADER, (byte) dataLength};
+        int dataLength = code.length;
+        byte bytes[] = { FRAME_DELIMITER, INITSEND_HEADER, (byte) (dataLength & 0xFF), (byte) (dataLength >>> 8)};
         byte crc[] = { 0, 0, 0, 0 };
         
         serialPort.writeBytes(bytes);        
-        for(int i = 0; i < dataLength; i++)
+        for(int i = 0; i < Math.min(chunkSize, dataLength); i++)
             serialPort.writeByte(code[i]);
         sendPtr = dataLength;
         
