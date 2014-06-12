@@ -140,6 +140,7 @@ public class BytecodeUploader
         case ExpectingAckSeqMsb:
             ackSeq |= (int)data << 8;
             receiveState = ReceiveState.ExpectingAckDelim;
+            System.out.println("ACKSEQ: " + ackSeq);
             break;
         case ExpectingAckDelim:
             if(data == FRAME_DELIMITER)
