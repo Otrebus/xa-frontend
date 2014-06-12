@@ -16,11 +16,10 @@ public class BytecodeUploader
     static final byte ECHO_HEADER = 0x03;
     
     boolean escaping = false;
-    boolean sending = false;
     enum ReceiveState { Idle, ExpectingHeader, ExpectingAckSeqLsb, ExpectingAckSeqMsb, ExpectingAckDelim, ExpectingData };
     
     byte[] code;
-    ReceiveState receiveState;
+    ReceiveState receiveState = ReceiveState.Idle;
     int sendPtr = 0;
     int ackSeq = 0;
     int chunkSize = 0;
@@ -59,23 +58,18 @@ public class BytecodeUploader
     
     public void transmitCode(byte[] code, int chunkSize) throws SerialPortException, BusyException
     {
-        if(chunkSize > 255 || chunkSize < 1)
-            throw new IllegalArgumentException("chunkSize must be in the interval [1, 255].");
-        if(sending)
-            throw new BusyException();
+        if(chunkSize < 1)
+            throw new IllegalArgumentException("chunkSize must be a positive value.");
     
-        sending = true; 
         this.code = code.clone();
-        this.chunkSize = chunkSize;
-        int dataLength = code.length;
-        byte bytes[] = { FRAME_DELIMITER, INITSEND_HEADER, (byte) (dataLength & 0xFF), (byte) (dataLength >>> 8)};
-        byte crc[] = { 0, 0, 0, 0 };
+        this.chunkSize = Math.min(chunkSize, code.length);
+        byte init[] = { FRAME_DELIMITER, INITSEND_HEADER, (byte) (code.length & 0xFF), (byte) (code.length >>> 8)};
+        byte crc[] = { 0, 0, 0, 0 }; // TODO: actually calculate CRC
         
-        serialPort.writeBytes(bytes);        
-        for(int i = 0; i < Math.min(chunkSize, dataLength); i++)
+        serialPort.writeBytes(init);        
+        for(int i = 0; i < chunkSize; i++)
             serialPort.writeByte(code[i]);
-        sendPtr = dataLength;
-        
+        sendPtr = chunkSize;
         serialPort.writeBytes(crc);
         serialPort.writeByte(FRAME_DELIMITER);
     }
@@ -86,7 +80,8 @@ public class BytecodeUploader
         byte crc[] = { 0, 0, 0, 0 };
          
         serialPort.writeBytes(bytes);
-        for(int i = sendPtr; i < Math.min(sendPtr + chunkSize, code.length); i++)
+        chunkSize = Math.min(chunkSize, code.length - sendPtr);
+        for(int i = sendPtr; i < sendPtr + chunkSize; i++)
             serialPort.writeByte(code[i]);
         sendPtr += chunkSize;
         
@@ -96,9 +91,10 @@ public class BytecodeUploader
     
     private void handleAck() throws SerialPortException
     {
+        System.out.println("got ack!");
         if(ackSeq >= code.length)
         {
-            sending = false;
+            System.out.println("FINISHED TRANSMITTING :D \\o/");
             sendPtr = 0;
             return;
         }
@@ -110,6 +106,7 @@ public class BytecodeUploader
     
     private void handleReceivedByte(byte data) throws SerialPortException
     {
+        System.out.println("Received " + (int) data);
         if(escaping)
         {
             data = (byte) (data ^ (1 << 5));
@@ -117,16 +114,18 @@ public class BytecodeUploader
         }
         if(data == ESCAPE_OCTET)
         {
-            escaping = true;
+            if(receiveState != ReceiveState.Idle)
+                escaping = true;
             return;
         }
+        
         switch(receiveState)
         {
         case Idle:
             if(data == FRAME_DELIMITER)
                 receiveState = ReceiveState.ExpectingHeader;
             else
-                System.out.println(data);
+                System.out.println("Received " + (char) data + " while idle.");
             break;
         case ExpectingHeader:
             if(data == ACK_HEADER)
@@ -136,9 +135,11 @@ public class BytecodeUploader
             break;
         case ExpectingAckSeqLsb:
             ackSeq = data;
+            receiveState = ReceiveState.ExpectingAckSeqMsb;
             break;
         case ExpectingAckSeqMsb:
             ackSeq |= (int)data << 8;
+            receiveState = ReceiveState.ExpectingAckDelim;
             break;
         case ExpectingAckDelim:
             if(data == FRAME_DELIMITER)
@@ -147,7 +148,7 @@ public class BytecodeUploader
                 handleAck();
             }
             else
-                System.out.println("Expected end delimiter, got something else.");
+                System.out.println("Expected ack end delimiter, got something else.");
             break;
         case ExpectingData:
             if(data == FRAME_DELIMITER)
@@ -171,8 +172,6 @@ public class BytecodeUploader
         {
             if(event.isRXCHAR()) // Received some bytes!
             {
-                if(sending)
-                    System.out.println("Received data while sending, device seems to be misbehaving.");
                 try 
                 {    
                     byte data[] = serialPort.readBytes(event.getEventValue());
