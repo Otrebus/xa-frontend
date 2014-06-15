@@ -1,5 +1,8 @@
 package se.neava.bytecodeuploader;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortException;
@@ -15,13 +18,18 @@ public class BytecodeUploader
     static final byte ACK_HEADER = 0x02;
     static final byte ECHO_HEADER = 0x03;
     
+    Timer timer = new Timer();
+    TimerTask task;
+    
     boolean escaping = false;
-    enum ReceiveState { Idle, ExpectingHeader, ExpectingAckSeqLsb, ExpectingAckSeqMsb, ExpectingAckDelim, ExpectingData };
+    enum ReceiveState { Idle, ExpectingHeader, ExpectingAckSeqLsb, ExpectingAckSeqMsb, ExpectingAckChecksum, ExpectingAckDelim, ExpectingData };
+    int substate = 0;
     
     byte[] code;
     ReceiveState receiveState = ReceiveState.Idle;
     int sendPtr = 0;
     int ackSeq = 0;
+    int ackChecksum = 0;
     int chunkSize = 0;
     
     SerialPort serialPort;
@@ -56,7 +64,7 @@ public class BytecodeUploader
         }
     }
     
-    public void transmitCode(byte[] code, int chunkSize) throws SerialPortException, BusyException
+    public synchronized void transmitCode(byte[] code, int chunkSize) throws SerialPortException, BusyException
     {
         if(chunkSize < 1)
             throw new IllegalArgumentException("chunkSize must be a positive value.");
@@ -64,34 +72,76 @@ public class BytecodeUploader
         this.code = code.clone();
         this.chunkSize = Math.min(chunkSize, code.length);
         byte init[] = { FRAME_DELIMITER, INITSEND_HEADER, (byte) (code.length & 0xFF), (byte) (code.length >>> 8)};
-        byte crc[] = { 0, 0, 0, 0 }; // TODO: actually calculate CRC
+        int checksum = init[1] + init[2] + init[3];
+        for(int i = 0; i < chunkSize; i++)
+            checksum += code[i];
+        byte crc[] = { (byte) (checksum & 0xFF) , (byte) ((checksum >>> 8) & 0xFF), (byte) ((checksum >>> 16) & 0xFF), (byte) ((checksum >>> 24) & 0xFF) };
         
         serialPort.writeBytes(init);        
         for(int i = 0; i < chunkSize; i++)
             serialPort.writeByte(code[i]);
-        sendPtr = chunkSize;
         serialPort.writeBytes(crc);
         serialPort.writeByte(FRAME_DELIMITER);
+        task = new TimerTask() { public void run() { try {
+            retransmitCode();
+        } catch (SerialPortException | BusyException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } } };
+        timer.schedule(task, 50);
+    }
+    
+    public void retransmitCode() throws SerialPortException, BusyException
+    {
+        System.out.println("retransmitcode");
+        transmitCode(code, chunkSize);
     }
     
     public void transmitMore() throws SerialPortException
     {
-        byte bytes[] = { FRAME_DELIMITER, MORESEND_HEADER };
-        byte crc[] = { 0, 0, 0, 0 };
-         
-        serialPort.writeBytes(bytes);
+        byte init[] = { FRAME_DELIMITER, MORESEND_HEADER, (byte) (sendPtr & 0xFF), (byte) (sendPtr >>> 8)};
+        
+        serialPort.writeBytes(init);
         chunkSize = Math.min(chunkSize, code.length - sendPtr);
         for(int i = sendPtr; i < sendPtr + chunkSize; i++)
             serialPort.writeByte(code[i]);
-        sendPtr += chunkSize;
+
+        int checksum = init[1] + init[2] + init[3];
+        for(int i = sendPtr; i < sendPtr + chunkSize; i++)
+            checksum += code[i];
+        byte crc[] = { (byte) (checksum & 0xFF) , (byte) ((checksum >>> 8) & 0xFF), (byte) ((checksum >>> 16) & 0xFF), (byte) ((checksum >>> 24) & 0xFF) };        
         
         serialPort.writeBytes(crc);
         serialPort.writeByte(FRAME_DELIMITER);
+
+        //sendPtr += chunkSize;        
+        
+        task = new TimerTask() { public void run() { try {
+            System.out.println("retransmitmore");
+            transmitMore();
+        } catch (SerialPortException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } } };
+        timer.schedule(task, 50);
     }
     
     private void handleAck() throws SerialPortException
     {
         System.out.println("got ack!");
+        int rcvChk = ACK_HEADER + (ackSeq & 0xFF) + (ackSeq >>> 8);
+        if(rcvChk != ackChecksum)
+        {
+            ackChecksum = 0;
+            System.out.println("Bad ack!");
+            if(sendPtr > 0)
+                sendPtr -= chunkSize;
+            return;
+        }
+        
+        sendPtr = ackSeq;
+        ackChecksum = 0;
+        task.cancel();
         if(ackSeq >= code.length)
         {
             System.out.println("FINISHED TRANSMITTING :D \\o/");
@@ -139,7 +189,7 @@ public class BytecodeUploader
             break;
         case ExpectingAckSeqMsb:
             ackSeq |= (int)data << 8;
-            receiveState = ReceiveState.ExpectingAckDelim;
+            receiveState = ReceiveState.ExpectingAckChecksum;
             System.out.println("ACKSEQ: " + ackSeq);
             break;
         case ExpectingAckDelim:
@@ -150,6 +200,14 @@ public class BytecodeUploader
             }
             else
                 System.out.println("Expected ack end delimiter, got something else.");
+            break;
+        case ExpectingAckChecksum:
+            ackChecksum += (data << (8*(substate++)));
+            if(substate > 3)
+            {
+                substate = 0;
+                receiveState = ReceiveState.ExpectingAckDelim;
+            }
             break;
         case ExpectingData:
             if(data == FRAME_DELIMITER)
