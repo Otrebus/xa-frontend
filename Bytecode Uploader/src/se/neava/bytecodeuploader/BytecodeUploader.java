@@ -13,10 +13,10 @@ public class BytecodeUploader
 {
     static final byte FRAME_DELIMITER = 0x7E;
     static final byte ESCAPE_OCTET = 0x7D;
-    static final byte INITSEND_HEADER = 0x00;
-    static final byte MORESEND_HEADER = 0x01;
-    static final byte ACK_HEADER = 0x02;
-    static final byte ECHO_HEADER = 0x03;
+    static final byte INITSEND_HEADER = 0x0A;
+    static final byte MORESEND_HEADER = 0x0B;
+    static final byte ACK_HEADER = 0x0C;
+    static final byte ECHO_HEADER = 0x0D;
     
     Timer timer = new Timer();
     TimerTask task;
@@ -93,7 +93,7 @@ public class BytecodeUploader
     
     public void retransmitCode() throws SerialPortException, BusyException
     {
-        System.out.println("retransmitcode");
+        System.out.print("r.");
         transmitCode(code, chunkSize);
     }
     
@@ -117,7 +117,7 @@ public class BytecodeUploader
         //sendPtr += chunkSize;        
         
         task = new TimerTask() { public void run() { try {
-            System.out.println("retransmitmore");
+            System.out.print("t.");
             transmitMore();
         } catch (SerialPortException e) {
             // TODO Auto-generated catch block
@@ -128,7 +128,6 @@ public class BytecodeUploader
     
     private void handleAck() throws SerialPortException
     {
-        System.out.println("got ack!");
         int rcvChk = ACK_HEADER + (ackSeq & 0xFF) + (ackSeq >>> 8);
         if(rcvChk != ackChecksum)
         {
@@ -142,6 +141,7 @@ public class BytecodeUploader
         sendPtr = ackSeq;
         ackChecksum = 0;
         task.cancel();
+        System.out.println("Got ack, seq " + ackSeq);
         if(ackSeq >= code.length)
         {
             System.out.println("FINISHED TRANSMITTING :D \\o/");
@@ -156,7 +156,7 @@ public class BytecodeUploader
     
     private void handleReceivedByte(byte data) throws SerialPortException
     {
-        System.out.println("Received " + (int) data);
+        System.out.print("Received " + (int) data);
         if(escaping)
         {
             data = (byte) (data ^ (1 << 5));
@@ -168,6 +168,7 @@ public class BytecodeUploader
                 escaping = true;
             return;
         }
+        System.out.println(" (" + data + ")");
         
         switch(receiveState)
         {
@@ -175,7 +176,7 @@ public class BytecodeUploader
             if(data == FRAME_DELIMITER)
                 receiveState = ReceiveState.ExpectingHeader;
             else
-                System.out.println("Received " + (char) data + " while idle.");
+                System.out.println("Received " + (int) data + " while idle.");
             break;
         case ExpectingHeader:
             if(data == ACK_HEADER)
