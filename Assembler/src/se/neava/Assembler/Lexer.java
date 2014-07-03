@@ -51,8 +51,4 @@ public class Lexer {
         omNomNom(1);
         return new Token(Token.Type.INVALID, "");
     } //         WHITESPACE("(\\d)+"), SIZE("[byte|word|dword]"), LABEL("[a-zA-Z]+:"), IDENTIFIER("[a-zA-Z]+"), NUMBER("[0-9]+"), OPENBRACKET("\\["), CLOSEBRACKET("\\]");
-    
-    public void consumeToken(String str)
-    {
-    }
 }

@@ -11,7 +11,7 @@ public class Token {
         NUMBER("[0-9]+"), 
         OPENBRACKET("\\["), 
         CLOSEBRACKET("\\]"),
-        SECTION("\\.[a-z_A-Z]+"),
+        SECTION("\\.section"),
         FRAMEPOINTER("\\$fp"),
         OPERATOR("[+-]"),
         INVALID("(?!)"), 
@@ -38,4 +38,8 @@ public class Token {
         return "(" + type.name() + ", " + str + ")";
     }
     
+    boolean equals(Token tok)
+    {
+        return type == tok.type && str.equals(tok.str);
+    }
 }

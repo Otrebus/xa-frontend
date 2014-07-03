@@ -1,6 +1,6 @@
 .section data
 MyLedDriver:
-  dword
+  dword 2
 MyLedDriver_blinking:
   byte
 Main:

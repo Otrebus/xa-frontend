@@ -49,11 +49,6 @@ public class Assembler {
         return line.split("--", 2)[0];
     }
     
-    public Statement parseLine(String str) throws ParseException
-    {
-        return Statement.parseStatement(str);
-    }
-    
     public byte[] assemble(String str) throws IOException
     {
         BufferedReader rdr = new BufferedReader(new StringReader(str));
@@ -67,10 +62,18 @@ public class Assembler {
         
         for(String line : strLines)
         {
-            System.out.println(line);
+            //System.out.println(line);
             Lexer lex = new Lexer(line);
-            
-            for(Token tok = lex.nextToken(); tok.type != Token.Type.END; tok = lex.nextToken())
+            Parser parser = new Parser(lex); 
+            try {
+                if(parser.parse() != null)
+                    System.out.println(line);
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+  /*          for(Token tok = lex.nextToken(); tok.type != Token.Type.END; tok = lex.nextToken())
             {
                 if(tok.type == Token.Type.INVALID)
                 {
@@ -78,7 +81,7 @@ public class Assembler {
                     break;
                 }
                 System.out.println(tok);
-            }
+            }*/
         }
         
         return new byte[0];
