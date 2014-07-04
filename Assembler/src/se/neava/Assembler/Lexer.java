@@ -1,5 +1,6 @@
 package se.neava.Assembler;
 
+import java.text.ParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -8,6 +9,7 @@ public class Lexer {
     int pos = 0;
     static Pattern pattern;
     Matcher matcher;
+    Token currentToken;
     
     static
     {
@@ -22,6 +24,7 @@ public class Lexer {
     {
         this.str = str;
         matcher = pattern.matcher(str);
+        currentToken = nextToken();
     }
     
     private void omNomNom(int size)
@@ -30,7 +33,7 @@ public class Lexer {
         matcher = pattern.matcher(str);
     }
     
-    public Token nextToken()
+    private Token nextToken()
     {
         if(str.equals(""))
             return new Token(Token.Type.END, "");
@@ -50,5 +53,50 @@ public class Lexer {
         }
         omNomNom(1);
         return new Token(Token.Type.INVALID, "");
-    } //         WHITESPACE("(\\d)+"), SIZE("[byte|word|dword]"), LABEL("[a-zA-Z]+:"), IDENTIFIER("[a-zA-Z]+"), NUMBER("[0-9]+"), OPENBRACKET("\\["), CLOSEBRACKET("\\]");
+    }
+    
+    public Token peek()
+    {
+        return currentToken;
+    }
+    
+    public Token accept(Token.Type type)
+    {
+        if(currentToken.type.equals(type))
+        {
+            Token acceptedToken = currentToken;
+            currentToken = nextToken();
+            return acceptedToken;
+        }
+        return null;
+    }
+    
+    public Token expect(Token.Type type) throws ParseException
+    {
+        if(!currentToken.type.equals(type))
+            throw new ParseException("Expected token " + type.name(), 0);
+        Token acceptedToken = currentToken;
+        currentToken = nextToken();
+        return acceptedToken;
+    }
+    
+    public Token accept(Token tok)
+    {
+        if(currentToken.equals(tok))
+        {
+            Token acceptedToken = currentToken;
+            currentToken = nextToken();
+            return acceptedToken;
+        }
+        return null;
+    }
+    
+    public Token expect(Token tok) throws ParseException
+    {
+        if(!currentToken.equals(tok))
+            throw new ParseException("Expected token " + tok.type.name() + ", specifically \"" + tok.str + "\"", 0);
+        Token acceptedToken = currentToken;
+        currentToken = nextToken();
+        return acceptedToken;
+    }
 }

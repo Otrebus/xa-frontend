@@ -9,4 +9,14 @@ public class Data implements Statement {
     {
         this.code = code.clone();
     }
+
+    public byte[] getCode() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    public void addToProgram(Program p) {
+        // TODO Auto-generated method stub
+        p.addStatement(this);        
+    }
 }

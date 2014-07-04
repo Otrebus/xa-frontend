@@ -10,4 +10,20 @@ public class Label implements Statement {
         label = str;
     }
 
+    @Override
+    public byte[] getCode() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public String toString()
+    {
+        return label + ":";
+    }
+
+    @Override
+    public void addToProgram(Program p) {
+        p.addLabel(label);
+    }
+
 }

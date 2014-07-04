@@ -66,8 +66,10 @@ public class Assembler {
             Lexer lex = new Lexer(line);
             Parser parser = new Parser(lex); 
             try {
-                if(parser.parse() != null)
-                    System.out.println(line);
+                System.out.println(line);
+                Statement s = parser.parse();
+                if(s != null)
+                    System.out.println(s + " -- parsed");
             } catch (ParseException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
