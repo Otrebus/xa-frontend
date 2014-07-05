@@ -1,6 +1,7 @@
 package se.neava.Assembler;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -15,7 +16,7 @@ public class Program
     int pos = 0;
     private Map<String, Integer> labels = new TreeMap<String, Integer>();
     private ArrayList<Statement> statements = new ArrayList<Statement>();
-    private ArrayList<Statement> errata = new ArrayList<Statement>();
+    private HashMap<Instruction, String> errata = new HashMap<Instruction, String>();
     
     public void addLabel(String label)
     {
@@ -56,8 +57,51 @@ public class Program
         }
     }
     
-    public void addErrata(Statement s)
+    public void addErrata(Instruction i, String label)
     {
-        errata.add(s);
+        errata.put(i, label);
+    }
+    
+    public void fixErrata()
+    {
+        for(Map.Entry<Instruction,String> entry : errata.entrySet())
+            entry.getKey().fixAddress(getAddress(entry.getValue()));
+    }
+    
+    public byte[] getCode()
+    {
+        byte[] bytes = new byte[pos];
+        int i = 0;
+        for(Statement s : statements)
+        {
+            byte[] code = s.getCode();
+            for(int j = 0; j < code.length; j++)
+                bytes[i + j] = code[j];
+            i += code.length;
+        }
+        return bytes;
+    }
+    
+    public String bytesToString(byte[] bytes)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        return sb.toString();
+    }
+    
+    public String toString()
+    {
+        String retstr = "";
+        int i = 0;
+        for(Statement s : statements)
+        {
+            byte[] code = s.getCode();
+            String addr = String.format("0x%4s", Integer.toHexString(i)).replace(' ', '0');
+            retstr += String.format("%s: %-40s %s \n", addr, s.toString(), bytesToString(code));
+            i += s.getCode().length;
+        }
+        return retstr;
     }
 }

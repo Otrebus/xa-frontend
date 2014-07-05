@@ -60,6 +60,8 @@ public class Assembler {
         }
         rdr.close();
         
+        Program p = new Program();
+        
         for(String line : strLines)
         {
             //System.out.println(line);
@@ -69,23 +71,21 @@ public class Assembler {
                 System.out.println(line);
                 Statement s = parser.parse();
                 if(s != null)
+                {
+                    s.addToProgram(p);
                     System.out.println(s + " -- parsed");
+                }
             } catch (ParseException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-
-  /*          for(Token tok = lex.nextToken(); tok.type != Token.Type.END; tok = lex.nextToken())
-            {
-                if(tok.type == Token.Type.INVALID)
-                {
-                    System.out.println("INVALID");
-                    break;
-                }
-                System.out.println(tok);
-            }*/
         }
         
-        return new byte[0];
+        System.out.println(p);
+        p.fixErrata();
+        System.out.println("-------------");
+        System.out.println(p);
+        System.out.println(p.bytesToString(p.getCode()));
+        return null;
     }
 }

@@ -4,7 +4,7 @@ public class Push implements Instruction
 {
     int size = -1;
     boolean fp = false;
-    String label;
+    String label = "";
     int c = 0;
     byte[] code;
     int addrIndex = 0;
@@ -85,17 +85,17 @@ public class Push implements Instruction
         this.label = label;
         if(size == 1)
         {
-            code = new byte[] { Instruction.OP_PUSHBYTEADDR | (byte) 0xFF, 0, 0 };
+            code = new byte[] { Instruction.OP_PUSHBYTEADDR, 0, 0 };
             str = "push byte [" + label + "]";
         }
         else if(size == 2)
         {
-            code = new byte[] { Instruction.OP_PUSHWORDADDR | (byte) 0xFF, 0, 0 };
+            code = new byte[] { Instruction.OP_PUSHWORDADDR, 0, 0 };
             str = "push word [" + label + "]";
         }
         else if(size == 4)
         {
-            code = new byte[] { Instruction.OP_PUSHDWORDADDR | (byte) 0xFF, 0, 0 };
+            code = new byte[] { Instruction.OP_PUSHDWORDADDR, 0, 0 };
             str = "push dword [" + label + "]";
         }
         addrIndex = 1;
@@ -120,7 +120,7 @@ public class Push implements Instruction
     public Push(String label)
     {
         this.label = label;
-        code = new byte[] { Instruction.OP_PUSHADDR | (byte) 0xFF, 0, 0 };
+        code = new byte[] { Instruction.OP_PUSHADDR, 0, 0 };
         str = "push " + label;
         addrIndex = 1;
     }
@@ -149,7 +149,7 @@ public class Push implements Instruction
             if(p.getAddress(label) != -1)
                 fixAddress(p.getAddress(label));
             else
-                p.addErrata(this);
+                p.addErrata(this, label);
         }
         p.addStatement(this);
     }
