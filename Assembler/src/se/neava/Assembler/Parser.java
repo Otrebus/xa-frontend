@@ -11,6 +11,7 @@ public class Parser {
     private static final Map<String, InstructionParser> parseMap = new TreeMap<String, InstructionParser>();
     static {
         parseMap.put("push", new PushParser());
+        parseMap.put("pop", new PopParser());
     }
     
     static public byte low8(int x)
@@ -45,6 +46,16 @@ public class Parser {
             imm = Integer.decode(num);
         }
         return imm;
+    }
+    
+    static int num(Lexer lexer) throws ParseException
+    {
+        String op = "";
+        Token tok = lexer.accept(Token.Type.OPERATOR);
+        if(tok != null)
+            op = tok.str;
+        tok = lexer.expect(Token.Type.NUMBER);
+        return parseNum(op + tok.str);
     }
     
     static class Mem
@@ -141,7 +152,6 @@ public class Parser {
             if(tok != null)
                 return sizedPush(tok.str);
             return unsizedPush();
-            
         }
         
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -150,6 +160,46 @@ public class Parser {
             return pushBody();
         }
         
+    }
+    
+    static class PopParser implements InstructionParser
+    {
+        Lexer lexer;
+
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            this.lexer = lexer;
+            // TODO Auto-generated method stub
+            return popBody();
+        }
+
+        private Instruction popBody() throws ParseException 
+        {
+            Token tok;
+            tok = lexer.accept(Token.Type.SIZE);
+            if(tok != null)
+                return sizedPop(tok.str);
+            return unsizedPop();
+        }
+        
+        private Instruction sizedPop(String size) throws ParseException {
+            // TODO Auto-generated method stub
+            lexer.expect(Token.Type.OPENBRACKET);
+            Mem m = mem(lexer);
+            lexer.expect(Token.Type.CLOSEBRACKET);
+            lexer.expect(Token.Type.END);
+            if(m.fp)
+                return new Pop(getSize(size), parseNum(m.value));
+            else
+                return new Pop(getSize(size), m.value);
+        }
+
+        private Instruction unsizedPop() throws ParseException
+        {
+            int imm = num(lexer);
+            lexer.expect(Token.Type.END);
+            return new Pop(imm);
+        }
     }
     
     private static int getSize(String str) throws ParseException
@@ -183,6 +233,12 @@ public class Parser {
         return null;
     }
     
+    private Statement string(String str) throws ParseException
+    {
+        lexer.expect(Token.Type.END);        
+        return new DataString(str.substring(1, str.length() - 1));
+    }
+    
     private Statement data(String size) throws ParseException
     {
         Token tok;
@@ -210,6 +266,11 @@ public class Parser {
         tok = lexer.accept(Token.Type.SIZE);
         if(tok != null)
             return data(tok.str);
+        tok = lexer.accept(Token.Type.STRING);
+        if(tok != null)
+            return string(tok.str);
+        if(tok != null)
+            return string(tok.str);
         tok = lexer.accept(Token.Type.LABEL);
         if(tok != null)
             return label(tok.str);

@@ -3,9 +3,7 @@ package se.neava.Assembler;
 public class Push implements Instruction 
 {
     int size = -1;
-    boolean fp = false;
     String label = "";
-    int c = 0;
     byte[] code;
     int addrIndex = 0;
     String str;
@@ -35,8 +33,6 @@ public class Push implements Instruction
     {
         assert(size == 1 || size == 2 || size == 4);
         this.size = size;
-        this.fp = fp;
-        this.c = c;
         if(size == 1)
         {
             if(fp)
@@ -103,8 +99,6 @@ public class Push implements Instruction
 
     public Push(boolean fp, int c)
     {
-        this.fp = fp;
-        this.c = c;
         if(fp)
         {
             code = new byte[] { Instruction.OP_PUSHFP };

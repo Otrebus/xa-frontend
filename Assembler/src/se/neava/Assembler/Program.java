@@ -1,5 +1,6 @@
 package se.neava.Assembler;
 
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,10 +63,15 @@ public class Program
         errata.put(i, label);
     }
     
-    public void fixErrata()
+    public void fixErrata() throws ParseException
     {
         for(Map.Entry<Instruction,String> entry : errata.entrySet())
-            entry.getKey().fixAddress(getAddress(entry.getValue()));
+        {
+            int addr = getAddress(entry.getValue());
+            if(addr == -1)
+                throw new ParseException("could not find label \"" + entry.getValue() + "\"", 0);
+            entry.getKey().fixAddress(addr);
+        }
     }
     
     public byte[] getCode()

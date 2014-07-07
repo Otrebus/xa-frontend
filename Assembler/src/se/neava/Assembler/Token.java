@@ -4,6 +4,7 @@ public class Token {
     
     public static enum Type 
     {
+        STRING("\\\".*\\\""),
         WHITESPACE("(\\s)+"), 
         SIZE("(byte|word|dword)\\b"), 
         LABEL("[a-z_A-Z]+:"), 

@@ -82,7 +82,12 @@ public class Assembler {
         }
         
         System.out.println(p);
-        p.fixErrata();
+        try {
+            p.fixErrata();
+        } catch (ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         System.out.println("-------------");
         System.out.println(p);
         System.out.println(p.bytesToString(p.getCode()));

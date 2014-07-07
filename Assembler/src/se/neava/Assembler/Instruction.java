@@ -20,6 +20,13 @@ public interface Instruction extends Statement {
     public final static byte OP_PUSHBYTE = 0x0D;
     public final static byte OP_PUSHWORD = 0x0E;
     public final static byte OP_PUSHDWORD = 0x0F;
+    public final static byte OP_POPIMM = 0x10;
+    public final static byte OP_POPBYTEFP = 0x11;
+    public final static byte OP_POPWORDFP = 0x12;
+    public final static byte OP_POPDWORDFP = 0x13;
+    public final static byte OP_POPBYTEADDR = 0x14;
+    public final static byte OP_POPWORDADDR = 0x15;
+    public final static byte OP_POPDWORDADDR = 0x16;
     
     public byte[] getCode();
     public void fixAddress(int address);
