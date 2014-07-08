@@ -1,3 +1,4 @@
+  call blah
   push 3
   push dword [$fp+3]
   push blah
@@ -18,3 +19,7 @@ blah:
   pop byte [blah]
   pop 3
   pop -3
+  call noret
+  ret 3
+  sync
+  async

@@ -12,6 +12,10 @@ public class Parser {
     static {
         parseMap.put("push", new PushParser());
         parseMap.put("pop", new PopParser());
+        parseMap.put("call", new CallParser());
+        parseMap.put("ret", new RetParser());
+        parseMap.put("sync", new SyncParser());
+        parseMap.put("async", new AsyncParser());
     }
     
     static public byte low8(int x)
@@ -87,12 +91,12 @@ public class Parser {
         return new Mem(false, tok.str);
     }
     
-    interface InstructionParser
+    private interface InstructionParser
     {
         Instruction parseInstruction(Lexer lexer) throws ParseException;
     }
     
-    static class PushParser implements InstructionParser
+    private static class PushParser implements InstructionParser
     {
         Lexer lexer;
         
@@ -162,7 +166,7 @@ public class Parser {
         
     }
     
-    static class PopParser implements InstructionParser
+    private static class PopParser implements InstructionParser
     {
         Lexer lexer;
 
@@ -199,6 +203,44 @@ public class Parser {
             int imm = num(lexer);
             lexer.expect(Token.Type.END);
             return new Pop(imm);
+        }
+    }
+    
+    private static class CallParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.IDENTIFIER);
+            lexer.expect(Token.Type.END);
+            return new Call(tok.str);
+        }
+    }
+    
+    private static class RetParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.NUMBER);
+            lexer.expect(Token.Type.END);
+            return new Ret(Parser.parseNum(tok.str));
+        }
+    }
+    
+    private static class AsyncParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            lexer.expect(Token.Type.END);
+            return new Async();
+        }
+    }
+    
+    private static class SyncParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            lexer.expect(Token.Type.END);
+            return new Sync();
         }
     }
     
