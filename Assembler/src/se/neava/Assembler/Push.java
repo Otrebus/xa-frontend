@@ -101,7 +101,7 @@ public class Push implements Instruction
     {
         if(fp)
         {
-            code = new byte[] { Instruction.OP_PUSHFP };
+            code = new byte[] { Instruction.OP_PUSHFP, Parser.low8(c), Parser.high8(c) };
             str = "push $fp + " + c;
         }
         else

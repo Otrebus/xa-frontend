@@ -7,6 +7,7 @@ noret:
   push word -0xa2
   push noret
 blah:
+  push $fp -2
   push dword [$fp + 3]
   push dword -2
   push dword 3
