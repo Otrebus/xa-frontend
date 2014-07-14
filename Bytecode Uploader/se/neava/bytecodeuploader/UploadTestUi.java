@@ -1,5 +1,17 @@
-import se.neava.bytecodeuploader.BytecodeUploader;
+package se.neava.bytecodeuploader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.text.ParseException;
 
+import jssc.SerialPortException;
+import se.neava.Assembler.Assembler;
+import se.neava.bytecodeuploader.BytecodeUploader;
+import se.neava.bytecodeuploader.BytecodeUploader.BusyException;
+import se.neava.bytecodeuploader.BytecodeUploader.NoPortsFoundException;
+
+class UploadTestUi
+{
     public static void main(String[] args) 
     {
         File file = new File("input.asm");
@@ -19,3 +31,4 @@ import se.neava.bytecodeuploader.BytecodeUploader;
             e.printStackTrace();
         }
     }
+}

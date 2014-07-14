@@ -19,9 +19,10 @@ public class Assembler {
 
     public static void main(String[] args) 
     {
-        try 
+        try
         {
             File file = new File("input.asm");
+            System.out.println(file.getAbsolutePath());
             byte[] bytes = Files.readAllBytes(file.toPath());
             String text = new String(bytes,"UTF-8");
 
