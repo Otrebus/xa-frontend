@@ -21,9 +21,10 @@ class UploadTestUi
             byte[] bytes = Files.readAllBytes(file.toPath());
             String text = new String(bytes,"UTF-8");
 
-            new Assembler().assemble(text);
+            byte[] code = new Assembler().assemble(text);
             BytecodeUploader bu = new BytecodeUploader(null, 9600);
-            bu.transmitCode("abcdefghijklmnopqrstuvwxyz".getBytes("UTF8"), 5);
+            bu.transmitCode(code, 5); // "abcdefghijklmnopqrstuvwxyz".getBytes("UTF8"), 5);
+            //bu.transmitCode("abcdefghijklmnopqrstuvwxyz".getBytes("UTF8"), 5);
         } 
         catch (NoPortsFoundException | SerialPortException | BusyException | IOException | ParseException e) 
         {

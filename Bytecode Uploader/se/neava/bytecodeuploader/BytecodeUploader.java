@@ -72,15 +72,19 @@ public class BytecodeUploader
         this.code = code.clone();
         this.chunkSize = Math.min(chunkSize, code.length);
         byte init[] = { FRAME_DELIMITER, INITSEND_HEADER, (byte) (code.length & 0xFF), (byte) (code.length >>> 8)};
-        int checksum = init[1] + init[2] + init[3];
-        for(int i = 0; i < chunkSize; i++)
-            checksum += code[i];
+        int checksum = (((int) init[1]) & 0xFF) + (((int) init[2]) & 0xFF) + (((int) init[3]) & 0xFF);
+        for(int i = sendPtr; i < sendPtr + chunkSize; i++)
+            checksum = addToChecksum(checksum, code[i]);
         byte crc[] = { (byte) (checksum & 0xFF) , (byte) ((checksum >>> 8) & 0xFF), (byte) ((checksum >>> 16) & 0xFF), (byte) ((checksum >>> 24) & 0xFF) };
         
-        serialPort.writeBytes(init);        
+        serialPort.writeByte(init[0]);
+        serialPort.writeByte(init[1]);
+        writeCheckedByte(init[2]);
+        writeCheckedByte(init[3]);
+        
         for(int i = 0; i < chunkSize; i++)
-            serialPort.writeByte(code[i]);
-        serialPort.writeBytes(crc);
+            writeCheckedByte(code[i]);
+        writeCheckedBytes(crc);
         serialPort.writeByte(FRAME_DELIMITER);
         task = new TimerTask() { public void run() { try {
             retransmitCode();
@@ -97,21 +101,49 @@ public class BytecodeUploader
         transmitCode(code, chunkSize);
     }
     
+    int addToChecksum(int oldChecksum, byte b)
+    {
+        return oldChecksum + (((int) b) & 0xFF);
+    }
+    
+    private void writeCheckedBytes(byte[] bytes) throws SerialPortException
+    {
+        for(byte b : bytes)
+        {
+            writeCheckedByte(b);
+        }
+    }
+    
+    private void writeCheckedByte(byte b) throws SerialPortException
+    {
+        if(b == FRAME_DELIMITER || b == ESCAPE_OCTET)
+        {
+            serialPort.writeByte(ESCAPE_OCTET);
+            int convert = (b ^ (1 << 5)) & 0xFF;
+            serialPort.writeByte((byte) convert);
+        }
+        else
+            serialPort.writeByte(b);
+    }
+    
     public void transmitMore() throws SerialPortException
     {
         byte init[] = { FRAME_DELIMITER, MORESEND_HEADER, (byte) (sendPtr & 0xFF), (byte) (sendPtr >>> 8)};
         
-        serialPort.writeBytes(init);
+        serialPort.writeByte(init[0]);
+        serialPort.writeByte(init[1]);
+        writeCheckedByte(init[2]);
+        writeCheckedByte(init[3]);
         chunkSize = Math.min(chunkSize, code.length - sendPtr);
         for(int i = sendPtr; i < sendPtr + chunkSize; i++)
-            serialPort.writeByte(code[i]);
+            writeCheckedByte(code[i]);
 
-        int checksum = init[1] + init[2] + init[3];
+        int checksum = (((int) init[1]) & 0xFF) + (((int) init[2]) & 0xFF) + (((int) init[3]) & 0xFF);
         for(int i = sendPtr; i < sendPtr + chunkSize; i++)
-            checksum += code[i];
+            checksum = addToChecksum(checksum, code[i]);
         byte crc[] = { (byte) (checksum & 0xFF) , (byte) ((checksum >>> 8) & 0xFF), (byte) ((checksum >>> 16) & 0xFF), (byte) ((checksum >>> 24) & 0xFF) };        
         
-        serialPort.writeBytes(crc);
+        writeCheckedBytes(crc);
         serialPort.writeByte(FRAME_DELIMITER);
 
         //sendPtr += chunkSize;        
@@ -156,7 +188,7 @@ public class BytecodeUploader
     
     private void handleReceivedByte(byte data) throws SerialPortException
     {
-        System.out.print("Received " + (int) data);
+        System.out.print("Received " + String.format("%02X ", data));
         if(escaping)
         {
             data = (byte) (data ^ (1 << 5));
