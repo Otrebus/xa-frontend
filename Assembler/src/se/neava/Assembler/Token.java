@@ -12,7 +12,7 @@ public class Token {
         NUMBER("(0x[0-9a-fA-F]+|[0-9]+)"), 
         OPENBRACKET("\\["), 
         CLOSEBRACKET("\\]"),
-        SECTION("\\.section"),
+        SECTION("\\.[a-z_A-Z]+"),
         FRAMEPOINTER("\\$fp"),
         OPERATOR("[+-]"),
         INVALID("(?!)"), 

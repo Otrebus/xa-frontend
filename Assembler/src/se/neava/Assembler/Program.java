@@ -1,5 +1,7 @@
 package se.neava.Assembler;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,11 +10,9 @@ import java.util.TreeMap;
 
 public class Program 
 {
-    enum Section { DATA, CODE, EXTERN };
-    Section currentSection;
-    int dataSection = -1;
-    int codeSection = -1;
-    int externSection = -1;
+    private static final int headerSize = 4;
+    int entry = -1;
+    int extern = -1;
     
     int pos = 0;
     private Map<String, Integer> labels = new TreeMap<String, Integer>();
@@ -37,25 +37,24 @@ public class Program
         pos += s.getCode().length;
     }
     
-    public void setSection(String str)
+    public void setEntry()
     {
-        assert(str.equals("data") || str.equals("code") || str.equals("extern"));
-        if(str.equals("data"))
-        {
-            dataSection = pos;
-            currentSection = Section.DATA;
-        }
-        if(str.equals("code"))
-        {
-            codeSection = pos;
-            currentSection = Section.CODE;
-        }
-            
-        if(str.equals("extern"))
-        {
-            externSection = pos;
-            currentSection = Section.EXTERN;
-        }
+        entry = pos;
+    }
+    
+    public void setExtern()
+    {
+        extern = pos;
+    }
+    
+    public int getEntry()
+    {
+        return entry;
+    }
+    
+    public int getExtern()
+    {
+        return extern;
     }
     
     public void addErrata(Instruction i, String label)
@@ -76,19 +75,18 @@ public class Program
     
     public byte[] getCode()
     {
-        byte[] bytes = new byte[pos];
+        ByteBuffer byteBuffer = ByteBuffer.allocate(pos + headerSize);
+        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        byteBuffer.putShort((short) entry);
+        byteBuffer.putShort((short) extern);
         int i = 0;
         for(Statement s : statements)
-        {
-            byte[] code = s.getCode();
-            for(int j = 0; j < code.length; j++)
-                bytes[i + j] = code[j];
-            i += code.length;
-        }
-        return bytes;
+            byteBuffer.put(s.getCode());
+        return byteBuffer.array();
     }
     
-    public String bytesToString(byte[] bytes)
+    // TODO: remove this 
+    static public String bytesToString(byte[] bytes)
     {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -99,6 +97,8 @@ public class Program
     
     public String toString()
     {
+        System.out.println("Entry point: " + String.format("0x%4s", Integer.toHexString(entry)).replace(' ', '0'));
+        System.out.println("Extern point: " + String.format("0x%4s", Integer.toHexString(extern)).replace(' ', '0'));
         String retstr = "";
         int i = 0;
         for(Statement s : statements)

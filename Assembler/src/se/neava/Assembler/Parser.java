@@ -260,19 +260,11 @@ public class Parser {
         this.lexer = lexer;
     }
     
-    private Statement section()
+    private Statement section(String str) throws ParseException
     {
-        Token tok;
-        tok = lexer.accept(new Token(Token.Type.IDENTIFIER, "data"));
-        if(tok != null)
-            return new Section("data");
-        tok = lexer.accept(new Token(Token.Type.IDENTIFIER, "code"));
-        if(tok != null)
-            return new Section("code");
-        tok = lexer.accept(new Token(Token.Type.IDENTIFIER, "extern"));
-        if(tok != null)
-            return new Section("extern");
-        return null;
+        String name = str.substring(1);
+        lexer.expect(Token.Type.END);
+        return new Directive(name);
     }
     
     private Statement string(String str) throws ParseException
@@ -304,13 +296,11 @@ public class Parser {
         Token tok;
         tok = lexer.accept(Token.Type.SECTION);
         if(tok != null)
-            return section();
+            return section(tok.str);
         tok = lexer.accept(Token.Type.SIZE);
         if(tok != null)
             return data(tok.str);
         tok = lexer.accept(Token.Type.STRING);
-        if(tok != null)
-            return string(tok.str);
         if(tok != null)
             return string(tok.str);
         tok = lexer.accept(Token.Type.LABEL);
@@ -322,6 +312,6 @@ public class Parser {
         if(parseMap.containsKey(tok.str))
             return parseMap.get(tok.str).parseInstruction(lexer);
         else
-            return null;
+            throw new ParseException("Unrecognized instruction " + tok.str, 0);
     }
 }

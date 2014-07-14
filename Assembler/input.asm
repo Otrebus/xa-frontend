@@ -1,3 +1,4 @@
+.entry
   call blah
   push 3
   push dword [$fp+3]
@@ -24,3 +25,5 @@ blah:
   ret 3
   sync
   async
+.extern
+  "yoyoyo"

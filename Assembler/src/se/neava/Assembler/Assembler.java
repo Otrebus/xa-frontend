@@ -17,25 +17,24 @@ public class Assembler {
     {
     }
 
-    public static void main(String[] args) {
-        // TODO Auto-generated method stub
-        try {
+    public static void main(String[] args) 
+    {
+        try 
+        {
             File file = new File("input.asm");
             byte[] bytes = Files.readAllBytes(file.toPath());
             String text = new String(bytes,"UTF-8");
 
-            try {
-                new Assembler().assemble(text);
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
+            new Assembler().assemble(text);
+        } 
+        catch (ParseException e) 
+        {
+            System.out.println("Parsing error: " + e.getMessage() + " (line " + e.getErrorOffset() + ")");
             e.printStackTrace();
-        } catch (IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
         }
     }
     
@@ -49,7 +48,7 @@ public class Assembler {
         return line.split("--", 2)[0];
     }
     
-    public byte[] assemble(String str) throws IOException
+    public byte[] assemble(String str) throws IOException, ParseException
     {
         BufferedReader rdr = new BufferedReader(new StringReader(str));
         List<String> strLines = new ArrayList<String>();
@@ -61,36 +60,31 @@ public class Assembler {
         rdr.close();
         
         Program p = new Program();
+        int lineNumber = 1;
         
         for(String line : strLines)
         {
-            //System.out.println(line);
-            Lexer lex = new Lexer(line);
-            Parser parser = new Parser(lex); 
-            try {
+            try
+            {
+                Lexer lex = new Lexer(line);
+                Parser parser = new Parser(lex); 
                 System.out.println(line);
                 Statement s = parser.parse();
                 if(s != null)
-                {
                     s.addToProgram(p);
-                    System.out.println(s + " -- parsed");
-                }
-            } catch (ParseException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
             }
+            catch(ParseException e)
+            {
+                throw new ParseException(e.getMessage(), lineNumber);
+            }
+            lineNumber++;
         }
         
         System.out.println(p);
-        try {
-            p.fixErrata();
-        } catch (ParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        p.fixErrata();
         System.out.println("-------------");
         System.out.println(p);
-        System.out.println(p.bytesToString(p.getCode()));
-        return null;
+        System.out.println(Program.bytesToString(p.getCode()));
+        return p.getCode();
     }
 }
