@@ -10,9 +10,10 @@ import java.util.TreeMap;
 
 public class Program 
 {
-    private static final int headerSize = 4;
+    private static final int headerSize = 6;
     int entry = -1;
     int extern = -1;
+    int program = -1;
     
     int pos = 0;
     private Map<String, Integer> labels = new TreeMap<String, Integer>();
@@ -57,6 +58,16 @@ public class Program
         return extern;
     }
     
+    public void setProgram() 
+    {
+        program = pos;   
+    }
+    
+    public int getProgram()
+    {
+        return program;
+    }
+    
     public void addErrata(Instruction i, String label)
     {
         errata.put(i, label);
@@ -77,9 +88,9 @@ public class Program
     {
         ByteBuffer byteBuffer = ByteBuffer.allocate(pos + headerSize);
         byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        byteBuffer.putShort((short) program);
         byteBuffer.putShort((short) entry);
         byteBuffer.putShort((short) extern);
-        int i = 0;
         for(Statement s : statements)
             byteBuffer.put(s.getCode());
         return byteBuffer.array();
@@ -97,8 +108,9 @@ public class Program
     
     public String toString()
     {
-        System.out.println("Entry point: " + String.format("0x%4s", Integer.toHexString(entry)).replace(' ', '0'));
-        System.out.println("Extern point: " + String.format("0x%4s", Integer.toHexString(extern)).replace(' ', '0'));
+        System.out.println("Code starts at: " + String.format("0x%4s", Integer.toHexString(program)).replace(' ', '0'));
+        System.out.println("Entry point is: " + String.format("0x%4s", Integer.toHexString(entry)).replace(' ', '0'));
+        System.out.println("Extern vars after: " + String.format("0x%4s", Integer.toHexString(extern)).replace(' ', '0'));
         String retstr = "";
         int i = 0;
         for(Statement s : statements)

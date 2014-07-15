@@ -7,15 +7,15 @@ import se.neava.Assembler.Statement;
 public class Label implements Statement {
     String label;
 
-    public Label(String str) {
-        // TODO Auto-generated constructor stub
+    public Label(String str) 
+    {
         label = str;
     }
 
     @Override
-    public byte[] getCode() {
-        // TODO Auto-generated method stub
-        return null;
+    public byte[] getCode() 
+    {
+        return new byte[] {};
     }
     
     public String toString()
@@ -24,7 +24,8 @@ public class Label implements Statement {
     }
 
     @Override
-    public void addToProgram(Program p) throws ParseException {
+    public void addToProgram(Program p) throws ParseException 
+    {
         if(p.getAddress(label) != -1)
             throw new ParseException("Duplicate label: " + label, 0);
         p.addLabel(label);

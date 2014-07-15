@@ -54,6 +54,7 @@ public class BytecodeUploader
     
     public void finalize()
     {
+        System.out.println("finalized");
         try 
         {
             serialPort.closePort();
@@ -178,6 +179,9 @@ public class BytecodeUploader
         {
             System.out.println("FINISHED TRANSMITTING :D \\o/");
             sendPtr = 0;
+            // TODO: fix
+            serialPort.closePort();
+            timer.cancel();
             return;
         }
         if(ackSeq == sendPtr)

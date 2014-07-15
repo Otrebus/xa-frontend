@@ -9,7 +9,7 @@ public class Directive implements Statement {
     
     public Directive(String name) throws ParseException 
     {
-        if(!name.equals("extern") && !name.equals("entry"))
+        if(!name.equals("extern") && !name.equals("entry") && !name.equals("program"))
             throw new ParseException("Illegal directive", 0);
         this.name = name;
     }
@@ -28,7 +28,9 @@ public class Directive implements Statement {
     {
         if(name.equals("extern"))
             p.setExtern();
-        else
+        else if(name.equals("entry"))
             p.setEntry();
+        else if(name.equals("program"))
+            p.setProgram();
     }
 }

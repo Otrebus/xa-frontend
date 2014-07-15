@@ -10,13 +10,13 @@ public class Data implements Statement {
         this.code = code.clone();
     }
 
-    public byte[] getCode() {
-        // TODO Auto-generated method stub
-        return null;
+    public byte[] getCode() 
+    {
+        return code;
     }
 
-    public void addToProgram(Program p) {
-        // TODO Auto-generated method stub
+    public void addToProgram(Program p) 
+    {
         p.addStatement(this);        
     }
 }
