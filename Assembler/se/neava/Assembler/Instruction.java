@@ -31,6 +31,7 @@ public interface Instruction extends Statement {
     public final static byte OP_RET = 0x18;
     public final static byte OP_SYNC = 0x19;
     public final static byte OP_ASYNC = 0x1A;
+    public final static byte OP_CALLE = 0x1B;
     
     public byte[] getCode();
     public void fixAddress(int address);
