@@ -111,6 +111,8 @@ public class BytecodeUploader
     {
         for(byte b : bytes)
         {
+            if(b == FRAME_DELIMITER)
+                System.out.println("adslfjk");
             writeCheckedByte(b);
         }
     }
@@ -161,7 +163,7 @@ public class BytecodeUploader
     
     private void handleAck() throws SerialPortException
     {
-        int rcvChk = ACK_HEADER + (ackSeq & 0xFF) + (ackSeq >>> 8);
+        int rcvChk = (int) ACK_HEADER + (int) (ackSeq & 0xFF) + (int) (ackSeq >>> 8);
         if(rcvChk != ackChecksum)
         {
             ackChecksum = 0;
@@ -194,11 +196,8 @@ public class BytecodeUploader
     {
         System.out.print("Received " + String.format("%02X ", data));
         if(escaping)
-        {
             data = (byte) (data ^ (1 << 5));
-            escaping = false;
-        }
-        if(data == ESCAPE_OCTET)
+        else if(data == ESCAPE_OCTET)
         {
             if(receiveState != ReceiveState.Idle)
                 escaping = true;
@@ -209,7 +208,7 @@ public class BytecodeUploader
         switch(receiveState)
         {
         case Idle:
-            if(data == FRAME_DELIMITER)
+            if(data == FRAME_DELIMITER && !escaping)
                 receiveState = ReceiveState.ExpectingHeader;
             else
                 System.out.println("Received " + (int) data + " while idle.");
@@ -230,7 +229,7 @@ public class BytecodeUploader
             System.out.println("ACKSEQ: " + ackSeq);
             break;
         case ExpectingAckDelim:
-            if(data == FRAME_DELIMITER)
+            if(data == FRAME_DELIMITER && !escaping)
             {
                 receiveState = ReceiveState.Idle;
                 handleAck();
@@ -239,7 +238,7 @@ public class BytecodeUploader
                 System.out.println("Expected ack end delimiter, got something else.");
             break;
         case ExpectingAckChecksum:
-            ackChecksum += (data << (8*(substate++)));
+            ackChecksum += ((int) (data << (8*(substate++)))) & 0xFF;
             if(substate > 3)
             {
                 substate = 0;
@@ -247,7 +246,7 @@ public class BytecodeUploader
             }
             break;
         case ExpectingData:
-            if(data == FRAME_DELIMITER)
+            if(data == FRAME_DELIMITER && !escaping)
             {
                 System.out.println("");
                 receiveState = ReceiveState.Idle;
@@ -260,6 +259,8 @@ public class BytecodeUploader
             System.out.println("Bug!! Bad state!");
             break;
         }
+        if(escaping)
+            escaping = false;
     }
     
     private class SerialPortReader implements SerialPortEventListener 
