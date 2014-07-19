@@ -244,7 +244,7 @@ public class Parser {
         }
     }
     
-    private static int getSize(String str) throws ParseException
+    static int getSize(String str) throws ParseException
     {
         if(str.equals("byte"))
             return 1;
@@ -278,11 +278,12 @@ public class Parser {
         Token tok;
         tok = lexer.accept(Token.Type.END);
         if(tok != null)
-            return new Data(new byte[getSize(size)]);
-        lexer.expect(Token.Type.NUMBER);
+            return new Data(size);
+        tok = lexer.expect(Token.Type.NUMBER);
+        int i = Integer.parseInt(tok.str);
         // TODO: Actually fill in data
         lexer.expect(Token.Type.END);
-        return new Data(new byte[getSize(size)]);
+        return new Data(size, i);
     }
     
     private Statement label(String str) throws ParseException
