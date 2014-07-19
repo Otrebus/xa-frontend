@@ -1,29 +1,51 @@
 .entry
-  call blah
-  push 3
-  push dword [$fp+3]
-  push blah
-noret:
-  push word 0xa2
-  push word -0xa2
-  push noret
-blah:
-  push $fp -2
-  push dword [$fp + 3]
-  push dword -2
-  push dword 3
-  push byte [noret]
-  push noret
-"asdfadsf"
-  push blah
-  pop byte [$fp + 2]
-  pop byte [$fp - 2]
-  pop byte [blah]
-  pop 3
-  pop -3
-  call noret
-  ret 3
-  sync
-  async
+Main:
+dword -- main "object"
+CounterObject:
+dword
+CounterObject_count:
+dword 100 -- count
+.program
+.entry
+Main_main:
+push dword 1000
+push CounterObject_startCounting
+push CounterObject
+sync
+
+CounterObject_startCounting:
+push dword [$fp-6]
+pop dword [CounterObject_count]
+push CounterObject_inc
+push CounterObject
+push dword 10000
+push dword 1000
+push byte 0
+async
+ret 4
+
+CounterObject_inc:
+push CounterObject_count
+push dword 1
+add dword
+push CounterObject_inc
+push CounterObject
+push dword 10000
+push dword 1000
+push byte 0
+async
+ret 0
+
+push dword 2
+push dword 3
+sub dword
+jgz dword toggleLed
+jez word toggleLed
+jnez byte toggleLed
+jgez dword toggleLed
+
 .extern
-  "yoyoyo"
+toggleLed:
+  "toggleLed"
+setLed:
+  "setLed"

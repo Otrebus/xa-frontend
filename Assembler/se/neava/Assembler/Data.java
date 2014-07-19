@@ -9,6 +9,7 @@ public class Data implements Statement {
     int value;
     String strSize;
     
+    // TODO: change to int size to conform with the others
     Data(String strSize, int value) throws ParseException
     {
         int size = Parser.getSize(strSize);
