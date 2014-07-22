@@ -22,6 +22,7 @@ public class Parser {
         parseMap.put("jgez", new JgezParser());
         parseMap.put("jnez", new JnezParser());
         parseMap.put("jez", new JezParser());
+        parseMap.put("jmp", new JmpParser());
     }
     
     static public byte low8(int x)
@@ -100,6 +101,17 @@ public class Parser {
     private interface InstructionParser
     {
         Instruction parseInstruction(Lexer lexer) throws ParseException;
+    }
+    
+    private static class JmpParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.IDENTIFIER);
+            String label = tok.str;
+            lexer.expect(Token.Type.END);
+            return new Jmp(label);
+        }
     }
     
     private static class JgzParser implements InstructionParser

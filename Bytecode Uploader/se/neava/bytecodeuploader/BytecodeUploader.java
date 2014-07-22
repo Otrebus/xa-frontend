@@ -220,11 +220,11 @@ public class BytecodeUploader
                 receiveState = ReceiveState.ExpectingData;
             break;
         case ExpectingAckSeqLsb:
-            ackSeq = data;
+            ackSeq = ((int) data) & 0xFF;
             receiveState = ReceiveState.ExpectingAckSeqMsb;
             break;
         case ExpectingAckSeqMsb:
-            ackSeq |= (int)data << 8;
+            ackSeq |= ((int)data << 8) & 0xFF00;
             receiveState = ReceiveState.ExpectingAckChecksum;
             System.out.println("ACKSEQ: " + ackSeq);
             break;

@@ -79,6 +79,8 @@ public interface Instruction extends Statement {
     public final static byte OP_JNEZWORD = 0x3e;
     public final static byte OP_JNEZDWORD = 0x3f;
     
+    public final static byte OP_JMP = 0x40;
+    
     public byte[] getCode();
     public void fixAddress(int address);
 }
