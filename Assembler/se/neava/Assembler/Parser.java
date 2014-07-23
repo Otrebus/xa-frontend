@@ -4,12 +4,14 @@ import java.text.ParseException;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class Parser {
+public class Parser 
+{
     Lexer lexer;
     Token currentToken;
     
     private static final Map<String, InstructionParser> parseMap = new TreeMap<String, InstructionParser>();
-    static {
+    static 
+    {
         parseMap.put("push", new PushParser());
         parseMap.put("pop", new PopParser());
         parseMap.put("call", new CallParser());
@@ -18,6 +20,12 @@ public class Parser {
         parseMap.put("async", new AsyncParser());
         parseMap.put("add", new AddParser());
         parseMap.put("sub", new SubParser());
+        parseMap.put("mul", new MulParser());
+        parseMap.put("div", new DivParser());
+        parseMap.put("mod", new ModParser());
+        parseMap.put("and", new AndParser());
+        parseMap.put("or", new OrParser());
+        parseMap.put("xor", new XorParser());
         parseMap.put("jgz", new JgzParser());
         parseMap.put("jgez", new JgezParser());
         parseMap.put("jnez", new JnezParser());
@@ -185,6 +193,72 @@ public class Parser {
             lexer.expect(Token.Type.END);
             int size = getSize(tok.str);
             return new Sub(size);
+        }
+    }
+    
+    private static class MulParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            lexer.expect(Token.Type.END);
+            int size = getSize(tok.str);
+            return new Mul(size);
+        }
+    }
+    
+    private static class DivParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            lexer.expect(Token.Type.END);
+            int size = getSize(tok.str);
+            return new Div(size);
+        }
+    }
+    
+    private static class ModParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            lexer.expect(Token.Type.END);
+            int size = getSize(tok.str);
+            return new Mod(size);
+        }
+    }
+    
+    private static class AndParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            lexer.expect(Token.Type.END);
+            int size = getSize(tok.str);
+            return new And(size);
+        }
+    }
+    
+    private static class OrParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            lexer.expect(Token.Type.END);
+            int size = getSize(tok.str);
+            return new Or(size);
+        }
+    }
+    
+    private static class XorParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            lexer.expect(Token.Type.END);
+            int size = getSize(tok.str);
+            return new Xor(size);
         }
     }
     
