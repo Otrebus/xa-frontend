@@ -182,7 +182,7 @@ public class BytecodeUploader
             System.out.println("FINISHED TRANSMITTING :D \\o/");
             sendPtr = 0;
             // TODO: fix
-            serialPort.closePort();
+            //serialPort.closePort();
             timer.cancel();
             return;
         }
@@ -261,6 +261,14 @@ public class BytecodeUploader
         }
         if(escaping)
             escaping = false;
+    }
+    
+    public void transmitAppData(byte[] code) throws SerialPortException
+    {
+        serialPort.writeByte(FRAME_DELIMITER);
+        serialPort.writeByte((byte) 0x00);
+        writeCheckedBytes(code);
+        serialPort.writeByte(FRAME_DELIMITER);
     }
     
     private class SerialPortReader implements SerialPortEventListener 

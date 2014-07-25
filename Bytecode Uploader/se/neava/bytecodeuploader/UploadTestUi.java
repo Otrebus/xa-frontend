@@ -1,6 +1,8 @@
 package se.neava.bytecodeuploader;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.text.ParseException;
 
@@ -23,8 +25,13 @@ class UploadTestUi
 
             byte[] code = new Assembler().assemble(text);
             BytecodeUploader bu = new BytecodeUploader(null, 9600);
-            bu.transmitCode(code, 5); // "abcdefghijklmnopqrstuvwxyz".getBytes("UTF8"), 5);
-            //bu.transmitCode("abcdefghijklmnopqrstuvwxyz".getBytes("UTF8"), 5);
+            bu.transmitCode(code, 5);
+            while(true)
+            {
+                BufferedReader buffer=new BufferedReader(new InputStreamReader(System.in));
+                String line=buffer.readLine();
+                bu.transmitAppData(line.getBytes("UTF-8"));
+            }
         } 
         catch (NoPortsFoundException | SerialPortException | BusyException | IOException | ParseException e) 
         {
