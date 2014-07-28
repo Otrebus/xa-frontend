@@ -7,7 +7,7 @@ public class Token {
         STRING("\\\".*\\\""),
         WHITESPACE("(\\s)+"), 
         SIZE("(byte|word|dword)\\b"), 
-        LABEL("[a-z_A-Z]+:"), 
+        LABEL("[0-9a-z_A-Z]+:"), 
         IDENTIFIER("[a-z_A-Z]+[0-9a-z_A-Z]*"), 
         NUMBER("(0x[0-9a-fA-F]+|[0-9]+)"), 
         OPENBRACKET("\\["), 

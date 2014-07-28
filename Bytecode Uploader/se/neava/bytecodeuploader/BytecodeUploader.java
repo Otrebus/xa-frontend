@@ -163,7 +163,7 @@ public class BytecodeUploader
     
     private void handleAck() throws SerialPortException
     {
-        int rcvChk = (int) ACK_HEADER + (int) (ackSeq & 0xFF) + (int) (ackSeq >>> 8);
+        int rcvChk = (int) ACK_HEADER + (int) (ackSeq & 0xFF) + (int) ((ackSeq >>> 8) & 0xFF);
         if(rcvChk != ackChecksum)
         {
             ackChecksum = 0;
@@ -238,7 +238,7 @@ public class BytecodeUploader
                 System.out.println("Expected ack end delimiter, got something else.");
             break;
         case ExpectingAckChecksum:
-            ackChecksum += ((int) (data << (8*(substate++)))) & 0xFF;
+            ackChecksum |= ((((int) data) & 0xFF) << (substate++)*8); 
             if(substate > 3)
             {
                 substate = 0;
