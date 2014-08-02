@@ -16,7 +16,7 @@ class UploadTestUi
 {
     public static void main(String[] args) 
     {
-        File file = new File("input.asm");
+        File file = new File(args.length > 1 ? args[0] : "input.asm");
         System.out.println(file.getAbsolutePath());
         try 
         { 
@@ -30,6 +30,8 @@ class UploadTestUi
             {
                 BufferedReader buffer=new BufferedReader(new InputStreamReader(System.in));
                 String line=buffer.readLine();
+                if(line.equals("RESET"))
+                    bu.sendReset();
                 bu.transmitAppData(line.getBytes("UTF-8"));
             }
         } 

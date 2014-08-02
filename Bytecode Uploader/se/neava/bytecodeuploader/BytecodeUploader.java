@@ -16,7 +16,7 @@ public class BytecodeUploader
     static final byte INITSEND_HEADER = 0x0A;
     static final byte MORESEND_HEADER = 0x0B;
     static final byte ACK_HEADER = 0x0C;
-    static final byte ECHO_HEADER = 0x0D;
+    static final byte RESET_HEADER = 0x0D;
     
     Timer timer = new Timer();
     TimerTask task;
@@ -216,8 +216,6 @@ public class BytecodeUploader
         case ExpectingHeader:
             if(data == ACK_HEADER)
                 receiveState = ReceiveState.ExpectingAckSeqLsb;
-            else if(data == ECHO_HEADER)
-                receiveState = ReceiveState.ExpectingData;
             break;
         case ExpectingAckSeqLsb:
             ackSeq = ((int) data) & 0xFF;
@@ -298,6 +296,13 @@ public class BytecodeUploader
     public class NoPortsFoundException extends Exception {
 
         private static final long serialVersionUID = -6206865497981467014L;
+    }
+
+    public void sendReset() throws SerialPortException 
+    {
+        serialPort.writeByte(FRAME_DELIMITER);
+        serialPort.writeByte((byte) RESET_HEADER);
+        serialPort.writeByte(FRAME_DELIMITER);
     }
 }
 
