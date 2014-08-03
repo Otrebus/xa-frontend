@@ -4,11 +4,11 @@ import se.neava.compiler.GravelParser.*;
 
 public class CodeGeneratorListener extends GravelBaseListener {
     
-    @Override
+    /*@Override
     public void enterDeclaration(DeclarationContext ctx)
     {
-        System.out.println("declaration");
-        System.out.println(ctx.getText());
+        for(IdentifierContext i : ctx.identifier())
+            System.out.println(i.getText() + ",");
     }
     
     @Override
@@ -23,5 +23,5 @@ public class CodeGeneratorListener extends GravelBaseListener {
     {
         System.out.println("data type");
         System.out.println(ctx.getText());
-    }
+    }*/
 }

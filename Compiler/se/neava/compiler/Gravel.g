@@ -2,15 +2,82 @@ grammar Gravel ;
 
 @header {package se.neava.compiler; }
 
-declaration : (dataType) (identifier) | identifier ;
+program : externDeclaration* classDeclaration* classDefinition* ;
 
-dataType : 'int' | 'char' | 'long' | identifier ;
-identifier : TEXT ;
+externDeclaration : 'extern' argType identifier '(' declarationArgList? ')' ';' ;
 
-TEXT : ('a'..'z')+ ;
+declarationArgList : argType (',' argType)*;
 
-PIPE : '|' ;
+argType : 'void' | type | functionPtr ;
 
-WS : SPACE+ {skip();};
+identifier : TEXTNUM ;
 
-fragment SPACE : (' ' | '\t' | '\f' | '\n' | '\r') ;
+TEXTNUM : (TEXT)+(NUM | TEXT)* ;
+
+type : baseType ('[' ']')? ;
+
+baseType : 'bool' | 'int' | 'char' | 'long' | identifier ;
+
+functionPtr : 'function' '(' declarationArgList ')' '->' argType ;
+
+classDeclaration : identifier identifier ';' ;
+
+classDefinition : 'class' identifier '{' classVariableDeclaration* methodDefinition* '}' ;
+
+classVariableDeclaration : type identifier ('=' classVariableInitializer)? ';' ;
+
+classVariableInitializer : NUM | STRING | 'false' | 'true' ;
+
+methodDefinition : argType identifier '(' argList ')' '{' methodBody '}' ;
+
+argList : (argType identifier (',' argType identifier )*)?;
+
+methodBody : methodVariableDefinition* statement* ;
+
+methodVariableDefinition : type identifier ( '=' expression )? ';' ;
+
+statement : assignment | ifStatement | whileStatement | returnStatement | '{' statement* '}' | functionCall | asyncStatement; 
+
+assignment : lvalue '=' expression ';' ;
+
+ifStatement : 'if' '(' expression ')' statement ;
+
+whileStatement : 'while' '(' expression ')' statement ;
+
+asyncStatement : 'after' expression time 'before' expression time functionCall | 'after' expression time functionCall | 'before' expression time functionCall ;
+
+time : 'sec' | 'msec' | 'usec' ;
+
+lvalue : identifier | identifier '[' expression ']' ;
+
+expression : 
+    'true' #trueExp |
+    'false' #falseExp |
+    NUM #numExp |
+    identifier ('[' expression ']')? #arrayLookupExp
+    | identifier '.' identifier #indirectionExp
+    | identifier '(' expression ')' #functionCallExp
+    | '(' expression ')' #parExp
+    | expression '*' expression #mulExp
+    | expression '/' expression #divExp
+    | expression '+' expression #addExp
+    | expression '-' expression #subExp
+    | expression '&&' expression #logAndExp
+    | expression '||' expression #logOrExp
+    | expression '>' expression #gtExp
+    | expression '>=' expression #gteExp
+    | expression '<=' expression #lteExp
+    | expression '<' expression #ltExp
+    | expression '==' expression #eqExp ;
+
+functionCall : identifier '(' expression? (',' expression)* ')' ';' ;
+
+returnStatement : 'return' expression ';' ;
+
+TEXT : ('a'..'z' | 'A'..'Z' | '_' );
+
+NUM : ('0'..'9')+ ;
+
+STRING : '"' ( ~('\n'|'\r') )*? '"';
+
+WS	:	(' '|'\t'|'\f'|'\n'|'\r')+{ skip(); };
