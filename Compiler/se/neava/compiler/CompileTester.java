@@ -37,6 +37,7 @@ public class CompileTester {
                 "            i = i + 1;\r\n" + 
                 "        }\r\n" + 
                 "        uartSend(length, msg);\r\n" + 
+                "        blnkr.blink();\r\n" + 
                 "    }\r\n" + 
                 "}\r\n" + 
                 "\r\n" + 

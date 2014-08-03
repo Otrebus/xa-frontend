@@ -70,7 +70,7 @@ expression :
     | expression '<' expression #ltExp
     | expression '==' expression #eqExp ;
 
-functionCall : identifier '(' expression? (',' expression)* ')' ';' ;
+functionCall : (identifier.)?identifier '(' expression? (',' expression)* ')' ';' ;
 
 returnStatement : 'return' expression ';' ;
 
