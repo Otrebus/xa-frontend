@@ -1,14 +1,20 @@
 grammar Gravel ;
 
-@header {package se.neava.compiler; }
+//@header { package se.neava.compiler; }
 
 program : externDeclaration* classDeclaration* classDefinition* ;
 
-externDeclaration : 'extern' argType identifier '(' declarationArgList? ')' ';' ;
+externDeclaration : 'extern' externArgType identifier '(' externDeclarationArgList ')' ';' ;
 
-declarationArgList : argType (',' argType)*;
+externDeclarationArgList : (externArgType (',' externArgType)*)? | voidType;
 
-argType : 'void' | type | functionPtr ;
+externArgType : functionPtr | argType ;
+
+argType : voidType | type ;
+
+declarationArgList : (argType (',' argType)*)? | voidType;
+
+voidType : 'void' ;
 
 identifier : TEXTNUM ;
 
@@ -26,7 +32,7 @@ classDefinition : 'class' identifier '{' classVariableDeclaration* methodDefinit
 
 classVariableDeclaration : type identifier ('=' classVariableInitializer)? ';' ;
 
-classVariableInitializer : NUM | STRING | 'false' | 'true' ;
+classVariableInitializer : number | string | 'false' | 'true' ;
 
 methodDefinition : argType identifier '(' argList ')' '{' methodBody '}' ;
 
@@ -36,7 +42,7 @@ methodBody : methodVariableDefinition* statement* ;
 
 methodVariableDefinition : type identifier ( '=' expression )? ';' ;
 
-statement : assignment | ifStatement | whileStatement | returnStatement | '{' statement* '}' | functionCall | asyncStatement; 
+statement : assignment | ifStatement | whileStatement | returnStatement | '{' statement* '}' | functionCallStatement | asyncStatement; 
 
 assignment : lvalue '=' expression ';' ;
 
@@ -44,7 +50,7 @@ ifStatement : 'if' '(' expression ')' statement ;
 
 whileStatement : 'while' '(' expression ')' statement ;
 
-asyncStatement : 'after' expression time 'before' expression time functionCall | 'after' expression time functionCall | 'before' expression time functionCall ;
+asyncStatement : 'after' expression time 'before' expression time functionCallStatement | 'after' expression time functionCallStatement | 'before' expression time functionCallStatement ;
 
 time : 'sec' | 'msec' | 'usec' ;
 
@@ -56,23 +62,29 @@ expression :
     NUM #numExp |
     identifier ('[' expression ']')? #arrayLookupExp
     | identifier '.' identifier #indirectionExp
-    | identifier '(' expression ')' #functionCallExp
+    | functionCall #functionCallExp
     | '(' expression ')' #parExp
     | expression '*' expression #mulExp
     | expression '/' expression #divExp
     | expression '+' expression #addExp
     | expression '-' expression #subExp
-    | expression '&&' expression #logAndExp
-    | expression '||' expression #logOrExp
     | expression '>' expression #gtExp
     | expression '>=' expression #gteExp
     | expression '<=' expression #lteExp
     | expression '<' expression #ltExp
-    | expression '==' expression #eqExp ;
+    | expression '==' expression #eqExp
+    | expression '&&' expression #logAndExp
+    | expression '||' expression #logOrExp ;
 
-functionCall : (identifier.)?identifier '(' expression? (',' expression)* ')' ';' ;
+functionCall : (identifier.)?identifier '(' (expression (',' expression)*)? ')' ;
+
+functionCallStatement : functionCall ';' ;
 
 returnStatement : 'return' expression ';' ;
+
+number : NUM ;
+
+string : STRING ;
 
 TEXT : ('a'..'z' | 'A'..'Z' | '_' );
 
@@ -80,4 +92,4 @@ NUM : ('0'..'9')+ ;
 
 STRING : '"' ( ~('\n'|'\r') )*? '"';
 
-WS	:	(' '|'\t'|'\f'|'\n'|'\r')+{ skip(); };
+WS    :    (' '|'\t'|'\f'|'\n'|'\r')+{ skip(); };
