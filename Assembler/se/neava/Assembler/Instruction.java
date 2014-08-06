@@ -30,56 +30,59 @@ public interface Instruction extends Statement {
     public final static byte OP_POPBYTEADDR = 0x14;
     public final static byte OP_POPWORDADDR = 0x15;
     public final static byte OP_POPDWORDADDR = 0x16;
-    public final static byte OP_CALL = 0x17;
-    public final static byte OP_RET = 0x18;
-    public final static byte OP_SYNC = 0x19;
-    public final static byte OP_ASYNC = 0x1A;
-    public final static byte OP_CALLE = 0x1B;
-    public final static byte OP_ADDBYTE = 0x1C;
-    public final static byte OP_ADDWORD = 0x1D;
-    public final static byte OP_ADDDWORD = 0x1E;
-    public final static byte OP_SUBBYTE = 0x1F;
-    public final static byte OP_SUBWORD = 0x20;
-    public final static byte OP_SUBDWORD = 0x21;
-    public final static byte OP_MULBYTE = 0x22;
-    public final static byte OP_MULWORD = 0x23;
-    public final static byte OP_MULDWORD = 0x24;
-    public final static byte OP_DIVBYTE = 0x25;
-    public final static byte OP_DIVWORD = 0x26;
-    public final static byte OP_DIVDWORD = 0x27;
-    public final static byte OP_MODBYTE = 0x28;
-    public final static byte OP_MODWORD = 0x29;
-    public final static byte OP_MODDWORD = 0x2a;
+    public final static byte OP_POPBYTE = 0x17;
+    public final static byte OP_POPWORD = 0x18;
+    public final static byte OP_POPDWORD = 0x19;
+    public final static byte OP_CALL = 0x1A;
+    public final static byte OP_RET = 0x1B;
+    public final static byte OP_SYNC = 0x1C;
+    public final static byte OP_ASYNC = 0x1D;
+    public final static byte OP_CALLE = 0x1E;
+    public final static byte OP_ADDBYTE = 0x1F;
+    public final static byte OP_ADDWORD = 0x20;
+    public final static byte OP_ADDDWORD = 0x21;
+    public final static byte OP_SUBBYTE = 0x22;
+    public final static byte OP_SUBWORD = 0x23;
+    public final static byte OP_SUBDWORD = 0x24;
+    public final static byte OP_MULBYTE = 0x25;
+    public final static byte OP_MULWORD = 0x26;
+    public final static byte OP_MULDWORD = 0x27;
+    public final static byte OP_DIVBYTE = 0x28;
+    public final static byte OP_DIVWORD = 0x29;
+    public final static byte OP_DIVDWORD = 0x2A;
+    public final static byte OP_MODBYTE = 0x2B;
+    public final static byte OP_MODWORD = 0x2C;
+    public final static byte OP_MODDWORD = 0x2D;
     
-    public final static byte OP_ANDBYTE = 0x2b;
-    public final static byte OP_ANDWORD = 0x2c;
-    public final static byte OP_ANDDWORD = 0x2d;
+    public final static byte OP_ANDBYTE = 0x2E;
+    public final static byte OP_ANDWORD = 0x2F;
+    public final static byte OP_ANDDWORD = 0x30;
     
-    public final static byte OP_ORBYTE = 0x2e;
-    public final static byte OP_ORWORD = 0x2f;
-    public final static byte OP_ORDWORD = 0x30;
+    public final static byte OP_ORBYTE = 0x31;
+    public final static byte OP_ORWORD = 0x32;
+    public final static byte OP_ORDWORD = 0x33;
     
-    public final static byte OP_XORBYTE = 0x31;
-    public final static byte OP_XORWORD = 0x32;
-    public final static byte OP_XORDWORD = 0x33;
+    public final static byte OP_XORBYTE = 0x34;
+    public final static byte OP_XORWORD = 0x35;
+    public final static byte OP_XORDWORD = 0x36;
     
-    public final static byte OP_JGZBYTE = 0x34;
-    public final static byte OP_JGZWORD = 0x35;
-    public final static byte OP_JGZDWORD = 0x36;
+    public final static byte OP_JGZBYTE = 0x37;
+    public final static byte OP_JGZWORD = 0x38;
+    public final static byte OP_JGZDWORD = 0x39;
 
-    public final static byte OP_JGEZBYTE = 0x37;
-    public final static byte OP_JGEZWORD = 0x38;
-    public final static byte OP_JGEZDWORD = 0x39;
+    public final static byte OP_JGEZBYTE = 0x3A;
+    public final static byte OP_JGEZWORD = 0x3B;
+    public final static byte OP_JGEZDWORD = 0x3C;
     
-    public final static byte OP_JEZBYTE = 0x3a;
-    public final static byte OP_JEZWORD = 0x3b;
-    public final static byte OP_JEZDWORD = 0x3c;
+    public final static byte OP_JEZBYTE = 0x3D;
+    public final static byte OP_JEZWORD = 0x3E;
+    public final static byte OP_JEZDWORD = 0x3F;
     
-    public final static byte OP_JNEZBYTE = 0x3d;
-    public final static byte OP_JNEZWORD = 0x3e;
-    public final static byte OP_JNEZDWORD = 0x3f;
+    public final static byte OP_JNEZBYTE = 0x40;
+    public final static byte OP_JNEZWORD = 0x41;
+    public final static byte OP_JNEZDWORD = 0x42;
     
-    public final static byte OP_JMP = 0x40;
+    public final static byte OP_JMP = 0x43;
     
     public byte[] getCode();
     public void fixAddress(int address);

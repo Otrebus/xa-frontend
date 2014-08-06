@@ -9,10 +9,32 @@ public class Pop implements Instruction {
     int addrIndex = 0;
     String str;
     
-    public Pop(int imm)
+    public Pop(int arg, boolean imm)
     {
-        str = "pop " + imm;
-        code = new byte[] { OP_POPIMM, Parser.low8(imm), Parser.high8(imm) };
+        if(imm)
+        {
+            str = "pop " + arg;
+            code = new byte[] { OP_POPIMM, Parser.low8(arg), Parser.high8(arg) };
+        }
+        else
+        {
+            assert(arg == 1 || arg == 2 || arg == 4);
+            if(arg == 1)
+            {
+                code = new byte[] { Instruction.OP_POPBYTE, 0, 0 };
+                str = "pop byte";
+            }
+            else if(arg == 2)
+            {
+                code = new byte[] { Instruction.OP_POPWORD, 0, 0 };
+                str = "pop word";
+            }
+            else if(arg == 4)
+            {
+                code = new byte[] { Instruction.OP_POPDWORD, 0, 0 };
+                str = "pop dword ";
+            }            
+        }
     }
     
     public Pop(int size, String label)

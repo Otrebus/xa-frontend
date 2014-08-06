@@ -43,6 +43,10 @@ jgz dword toggleLed
 jez word toggleLed
 jnez byte toggleLed
 jgez dword toggleLed
+pop byte
+pop word
+pop dword
+pop 5
 
 .extern
 toggleLed:

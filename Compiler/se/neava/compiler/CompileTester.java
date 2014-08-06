@@ -77,13 +77,8 @@ public class CompileTester {
         // Pass the tokens to the parser
         GravelParser parser = new GravelParser(tokens);
      
-        // Specify our entry point
-        ProgramContext gravelContext = parser.program();
-     
-        // Walk it and attach our listener
-        ParseTreeWalker walker = new ParseTreeWalker();
-        GravelListener listener = new CodeGeneratorListener();
-        walker.walk(listener, gravelContext);
+        CodeGeneratorVisitor visitor = new CodeGeneratorVisitor();
+        visitor.visit(parser.program());
     }
 
 }

@@ -354,7 +354,12 @@ public class Parser
         
         private Instruction sizedPop(String size) throws ParseException {
             // TODO Auto-generated method stub
-            lexer.expect(Token.Type.OPENBRACKET);
+            Token tok = lexer.accept(Token.Type.OPENBRACKET);
+            if(tok == null)
+            {
+                lexer.expect(Token.Type.END);
+                return new Pop(getSize(size), false);
+            }
             Mem m = mem(lexer);
             lexer.expect(Token.Type.CLOSEBRACKET);
             lexer.expect(Token.Type.END);
@@ -368,7 +373,7 @@ public class Parser
         {
             int imm = num(lexer);
             lexer.expect(Token.Type.END);
-            return new Pop(imm);
+            return new Pop(imm, true);
         }
     }
     
