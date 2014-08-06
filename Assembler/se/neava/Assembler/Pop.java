@@ -21,17 +21,17 @@ public class Pop implements Instruction {
             assert(arg == 1 || arg == 2 || arg == 4);
             if(arg == 1)
             {
-                code = new byte[] { Instruction.OP_POPBYTE, 0, 0 };
+                code = new byte[] { Instruction.OP_POPBYTE };
                 str = "pop byte";
             }
             else if(arg == 2)
             {
-                code = new byte[] { Instruction.OP_POPWORD, 0, 0 };
+                code = new byte[] { Instruction.OP_POPWORD };
                 str = "pop word";
             }
             else if(arg == 4)
             {
-                code = new byte[] { Instruction.OP_POPDWORD, 0, 0 };
+                code = new byte[] { Instruction.OP_POPDWORD };
                 str = "pop dword ";
             }            
         }
