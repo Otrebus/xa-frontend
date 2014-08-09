@@ -450,7 +450,18 @@ public class Parser
         tok = lexer.accept(Token.Type.END);
         if(tok != null)
             return new Data(size);
-        tok = lexer.expect(Token.Type.NUMBER);
+        tok = lexer.accept(Token.Type.OPENBRACKET);
+        if(tok != null)
+        {
+            tok = lexer.expect(Token.Type.NUMBER);
+            int i = parseNum(tok.str);
+            lexer.expect(Token.Type.CLOSEBRACKET);
+            lexer.expect(Token.Type.END);
+            if(!size.equals("byte"))
+                throw new ParseException("data arrays must be of type byte!", 0);
+            return new Data(i);
+        }
+        tok = lexer.expect(Token.Type.NUMBER);        
         int i = Integer.parseInt(tok.str);
         // TODO: Actually fill in data
         lexer.expect(Token.Type.END);

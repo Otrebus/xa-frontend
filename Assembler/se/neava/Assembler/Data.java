@@ -8,6 +8,7 @@ public class Data implements Statement {
     byte[] code;
     int value;
     String strSize;
+    String str;
     
     // TODO: change to int size to conform with the others
     Data(String strSize, int value) throws ParseException
@@ -19,14 +20,22 @@ public class Data implements Statement {
         code = new byte[size];
         for(int i = 0; i < size; i++)
             code[i] = (byte)((value >>> i*8) & 0xFF);
+        str = strSize + " " + value;
     }
     
     Data(String strSize) throws ParseException
     {
         this.strSize = strSize;
         code = new byte[Parser.getSize(strSize)];
+        str = strSize;
     }
     
+
+    public Data(int i) 
+    {
+        code = new byte[i];
+        str = "byte[" + i + "]";
+    }
 
     public byte[] getCode() 
     {
@@ -40,6 +49,6 @@ public class Data implements Statement {
     
     public String toString()
     {
-        return strSize + " " + value;
+        return str;
     }
 }
