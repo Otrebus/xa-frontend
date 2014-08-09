@@ -1,52 +1,38 @@
 grammar Gravel ;
 
-//@header { package se.neava.compiler; }
+program : externDeclaration* classInstanceDeclaration* classDefinition* ;
 
-program : externDeclaration* classDeclaration* classDefinition* ;
-
-externDeclaration : 'extern' externArgType identifier '(' externDeclarationArgList ')' ';' ;
-
-externDeclarationArgList : (externArgType (',' externArgType)*)? | voidType;
-
-externArgType : functionPtr | argType ;
-
-argType : voidType | type ;
-
-declarationArgList : (argType (',' argType)*)? | voidType;
-
-voidType : 'void' ;
+externDeclaration : 'extern' type identifier '(' type (',' type)* ')' ';' ;
 
 identifier : TEXTNUM ;
 
 TEXTNUM : (TEXT)+(NUM | TEXT)* ;
 
-type : baseType ('[' ']')? ;
+type : baseType brackets? ;
 
-baseType : 'bool' | 'int' | 'char' | 'long' | identifier ;
+brackets : ('[' ']') ;
 
-functionPtr : 'function' '(' declarationArgList ')' '->' argType ;
+baseType : 'bool' | 'int' | 'char' | 'long' | identifier | 'void' | functionPtr;
 
-classDeclaration : identifier identifier ';' ;
+functionPtr : 'function' '(' ((type (',' type)*))? ')' '->' type ;
+
+classInstanceDeclaration : identifier identifier ';' ;
 
 classDefinition : 'class' identifier '{' classVariableDeclaration* methodDefinition* '}' ;
 
-classVariableDeclaration : type identifier ('=' classVariableInitializer)? ';' ;
+classVariableDeclaration : type identifier ';' ;
 
-classVariableInitializer : number | string | 'false' | 'true' ;
+methodDefinition : type identifier '(' (type identifier (',' type identifier )*)? ')' '{' methodBody '}' ;
 
-methodDefinition : argType identifier '(' argList ')' '{' methodBody '}' ;
+methodBody : methodVariableDefinition* statement* returnStatement;
 
-argList : (argType identifier (',' argType identifier )*)?;
-
-methodBody : methodVariableDefinition* statement* ;
-
-methodVariableDefinition : type identifier ( '=' expression )? ';' ;
+methodVariableDefinition : type identifier ';' ;
 
 statement : assignment | ifStatement | whileStatement | returnStatement | '{' statement* '}' | functionCallStatement | asyncStatement; 
 
 assignment : lvalue '=' expression ';' ;
 
-ifStatement : 'if' '(' expression ')' statement ;
+ifStatement : 'if' '(' expression ')' statement ('else' statement)? ;
 
 whileStatement : 'while' '(' expression ')' statement ;
 
@@ -80,7 +66,7 @@ functionCall : (identifier.)?identifier '(' (expression (',' expression)*)? ')' 
 
 functionCallStatement : functionCall ';' ;
 
-returnStatement : 'return' expression ';' ;
+returnStatement : 'return' expression? ';' ;
 
 number : NUM ;
 
