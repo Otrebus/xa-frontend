@@ -6,4 +6,9 @@ public class BoolType extends Type
     {
         this.isArray = isArray;
     }
+    
+    public int getSize()
+    {
+        return 1;
+    }
 }

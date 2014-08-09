@@ -64,12 +64,6 @@ public class MethodSymbol extends Symbol
         
     }
 
-    @Override
-    public Type getType() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
     public void setLabel(String label)
     {
         this.label = label;

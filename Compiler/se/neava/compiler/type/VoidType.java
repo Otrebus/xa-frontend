@@ -6,4 +6,9 @@ public class VoidType extends Type
     {
         this.isArray = isArray;
     }
+    
+    public int getSize()
+    {
+        return 0;
+    }
 }

@@ -1,5 +1,6 @@
 .entry
 Main:
+byte[6]
 dword -- main "object"
 CounterObject:
 dword

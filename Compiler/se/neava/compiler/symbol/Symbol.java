@@ -13,5 +13,4 @@ public abstract class Symbol
     
     abstract void emitLoad();
     abstract void emitStore();
-    abstract Type getType();
 }

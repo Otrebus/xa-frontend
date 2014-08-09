@@ -7,4 +7,9 @@ public class CharType extends Type {
         this.isArray = isArray;
     }
 
+    public int getSize()
+    {
+        return 1;
+    }
+    
 }

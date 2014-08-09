@@ -17,4 +17,9 @@ public class FunctionPointerType extends Type
         for(int i = 0; i < ctx.type().size() - 1; i++)
             signature.add(Type.CreateType(ctx.type(i)));
     }
+    
+    public int getSize()
+    {
+        return 2;
+    }
 }

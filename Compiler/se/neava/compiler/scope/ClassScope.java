@@ -13,6 +13,7 @@ import se.neava.compiler.symbol.VariableSymbol;
 
 public class ClassScope implements Scope 
 {
+    private static final int HEADER_SIZE = 2;
     Scope parent;
     String className;
     String label;
@@ -48,6 +49,11 @@ public class ClassScope implements Scope
     {
         return parent.getClassInstance(str);
     }
+    
+    public List<ClassVariableSymbol> getVariableSymbols()
+    {
+        return variableSymbols;
+    }
 
     @Override
     public VariableSymbol getVariable(String str) {
@@ -72,5 +78,13 @@ public class ClassScope implements Scope
     public void setLabel(String lbl) 
     {
         label = lbl;
+    }
+    
+    public int getSize()
+    {
+        int size = 0;
+        for(VariableSymbol s : variableSymbols)
+            size += s.getType().getSize();
+        return HEADER_SIZE + size;
     }
 }

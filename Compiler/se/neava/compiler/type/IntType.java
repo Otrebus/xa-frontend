@@ -6,4 +6,9 @@ public class IntType extends Type
     {
         this.isArray = isArray;
     }
+    
+    public int getSize()
+    {
+        return 2;
+    }
 }

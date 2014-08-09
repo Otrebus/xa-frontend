@@ -16,7 +16,7 @@ public class CompileTester {
                 "\r\n" + 
                 "extern void toggleLed(void);\r\n" + 
                 "\r\n" + 
-                "Main m;\r\n" + 
+                "Main main;\r\n" + 
                 "\r\n" + 
                 "MessageHandler msgHndlr;\r\n" + 
                 "\r\n" + 

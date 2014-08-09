@@ -35,4 +35,6 @@ public abstract class Type
             return new VoidType(isArray);
         return null;
     }
+    
+    abstract public int getSize();
 }

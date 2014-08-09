@@ -54,19 +54,26 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Void>
         codeGen.emitExternln("\"" + name + "\"");
         return visitChildren(ctx); 
     }
+    
+    public Void visitClassInstanceDeclaration(@NotNull GravelParser.ClassInstanceDeclarationContext ctx) 
+    { 
+        String className = ctx.identifier(0).getText();
+        String identifierName = ctx.identifier(1).getText();
+        
+        if(identifierName.equals("main") && className.equals("Main"))
+            codeGen.emitDataDirective(".entry");
+        String lbl = codeGen.makeLabel(identifierName);
+        codeGen.emitDataLabel(lbl);
+        int size = currentScope.getClassScope(className).getSize();
+        codeGen.emitDataln("byte[" + size + "]");
+        
+        return visitChildren(ctx); 
+    }
 
     public Void visitClassDefinition(GravelParser.ClassDefinitionContext ctx) 
     {
         String name = ctx.identifier().getText();
         currentScope = currentScope.getClassScope(name);
-        String lbl = codeGen.makeLabel(name);
-        currentScope.getClassScope(name).setLabel(lbl);
-        
-        if(name.equals("Main"))
-            codeGen.emitDataDirective(".entry");
-        codeGen.emitDataLabel(lbl);
-        codeGen.emitDataln("dword 0");
-        
         return visitChildren(ctx); 
     }
     
@@ -105,13 +112,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Void>
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitClassInstanceDeclaration(@NotNull GravelParser.ClassInstanceDeclarationContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
     @Override public Void visitTrueExp(@NotNull GravelParser.TrueExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}

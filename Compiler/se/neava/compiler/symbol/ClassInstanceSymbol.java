@@ -25,13 +25,6 @@ public class ClassInstanceSymbol extends Symbol
         
     }
 
-    @Override
-    public Type getType() 
-    {
-        // TODO Class type?
-        return null;
-    }
-    
     public ClassScope getClassScope()
     {
         return scope;

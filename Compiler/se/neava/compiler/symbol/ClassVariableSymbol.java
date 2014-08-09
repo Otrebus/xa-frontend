@@ -15,6 +15,7 @@ public class ClassVariableSymbol extends VariableSymbol
     public ClassVariableSymbol(ClassVariableDeclarationContext ctx) 
     {
         name = ctx.identifier().getText();
+        type = Type.CreateType(ctx.type());
     }
 
     @Override
@@ -29,10 +30,9 @@ public class ClassVariableSymbol extends VariableSymbol
         
     }
 
-    @Override
-    public Type getType() {
-        // TODO Auto-generated method stub
-        return null;
+    public Type getType() 
+    {
+        return type;
     }
 
 }

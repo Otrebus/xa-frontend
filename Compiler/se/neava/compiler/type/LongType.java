@@ -6,4 +6,9 @@ public class LongType extends Type
     {
         this.isArray = isArray;
     }
+    
+    public int getSize()
+    {
+        return 4;
+    }
 }
