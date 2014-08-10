@@ -1,5 +1,6 @@
 package se.neava.compiler.scope;
 
+import se.neava.compiler.GravelParser.MethodDefinitionContext;
 import se.neava.compiler.symbol.ClassInstanceSymbol;
 import se.neava.compiler.symbol.MethodSymbol;
 import se.neava.compiler.symbol.VariableSymbol;
@@ -7,34 +8,34 @@ import se.neava.compiler.symbol.VariableSymbol;
 public class MethodScope implements Scope 
 {
     Scope parent;
-    @Override
-    public MethodSymbol getMethod(String str) {
-        // TODO Auto-generated method stub
-        return null;
+    public MethodScope(Scope parent, MethodDefinitionContext ctx) 
+    {
+        this.parent = parent;
+        ctx.
     }
 
-    @Override
-    public ClassInstanceSymbol getClassInstance(String str) {
-        // TODO Auto-generated method stub
-        return null;
+    public MethodSymbol getMethod(String str) 
+    {
+        return parent.getMethod(str);
     }
 
-    @Override
-    public VariableSymbol getVariable(String str) {
-        // TODO Auto-generated method stub
-        return null;
+    public ClassInstanceSymbol getClassInstance(String str) 
+    {
+        return parent.getClassInstance(str);
     }
 
-    @Override
-    public ClassScope getClassScope(String str) {
-        // TODO Auto-generated method stub
-        return null;
+    public VariableSymbol getVariable(String str) 
+    {
+        return parent.getVariable(str);
     }
 
-    @Override
+    public ClassScope getClassScope(String str) 
+    {
+        return parent.getClassScope(str);
+    }
+
     public Scope getParent() 
     {
         return parent;
     }
-
 }

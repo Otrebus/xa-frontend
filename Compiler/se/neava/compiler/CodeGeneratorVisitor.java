@@ -77,20 +77,12 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Void>
         return visitChildren(ctx); 
     }
     
-    public Void visitMethodVariableDefinition(@NotNull GravelParser.MethodVariableDefinitionContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitParExp(@NotNull GravelParser.ParExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+    public Void visitMethodDefinition(GravelParser.MethodDefinitionContext ctx) 
+    { 
+        currentScope = new MethodScope(ctx);
+        return visitChildren(ctx); 
+    }
+       
     @Override public Void visitReturnStatement(@NotNull GravelParser.ReturnStatementContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
@@ -177,13 +169,6 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Void>
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Void visitFalseExp(@NotNull GravelParser.FalseExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitMethodDefinition(@NotNull GravelParser.MethodDefinitionContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
@@ -325,6 +310,15 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Void>
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Void visitGtExp(@NotNull GravelParser.GtExpContext ctx) { return visitChildren(ctx); }
+    
+    @Override public Void visitParExp(@NotNull GravelParser.ParExpContext ctx) { return visitChildren(ctx); }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    
     /**
      * {@inheritDoc}
      *

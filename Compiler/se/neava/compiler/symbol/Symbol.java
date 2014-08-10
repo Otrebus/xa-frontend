@@ -6,7 +6,7 @@ public abstract class Symbol
 {
     String name;
     
-    String getName()
+    public String getName()
     {
         return name;
     }

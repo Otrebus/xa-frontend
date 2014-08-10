@@ -35,7 +35,6 @@ public class ClassScope implements Scope
         return className;
     }
 
-    @Override
     public MethodSymbol getMethod(String str) 
     {
         for(MethodSymbol s : methodSymbols)
@@ -44,7 +43,6 @@ public class ClassScope implements Scope
         return parent.getMethod(str);
     }
 
-    @Override
     public ClassInstanceSymbol getClassInstance(String str) 
     {
         return parent.getClassInstance(str);
@@ -57,8 +55,10 @@ public class ClassScope implements Scope
 
     @Override
     public VariableSymbol getVariable(String str) {
-        // TODO Auto-generated method stub
-        return null;
+        for(ClassVariableSymbol s : variableSymbols)
+            if(str.equals(s.getName()))
+                return s;
+        return parent.getVariable(str);
     }
 
     @Override
