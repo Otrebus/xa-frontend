@@ -5,11 +5,12 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import se.neava.compiler.GravelParser.ProgramContext;
+import se.neava.compiler.type.*;
 
 public class CompileTester {
 
-    public static void main(String[] args) {
-        // TODO Auto-generated method stub
+    public static void main(String[] args) 
+    {
         GravelLexer lexer = new GravelLexer(new ANTLRInputStream("extern void test(int);\r\n" + 
                 "extern void uartSetCallback(function (char, char[]) -> void);\r\n" + 
                 "extern void uartSend(char, char[]);\r\n" + 
@@ -85,7 +86,13 @@ public class CompileTester {
      
         CodeGeneratorVisitor visitor = new CodeGeneratorVisitor();
         visitor.visit(parser.program());
-        System.out.println(visitor.getCode());
+        if(visitor.error())
+        {
+            System.out.println("Compile error(s)!");
+            System.out.println(visitor.dumpErrors());
+        }
+        else
+            System.out.println(visitor.getCode());
     }
 
 }

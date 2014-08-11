@@ -42,7 +42,8 @@ time : 'sec' | 'msec' | 'usec' ;
 
 lvalue : identifier | identifier '[' expression ']' ;
 
-expression : 
+expression :
+    identifier #identifierExp |
     'true' #trueExp |
     'false' #falseExp |
     NUM #numExp |

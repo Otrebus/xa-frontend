@@ -7,24 +7,28 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import se.neava.compiler.scope.GlobalScope;
+import se.neava.compiler.scope.MethodScope;
 import se.neava.compiler.scope.Scope;
+import se.neava.compiler.symbol.MethodSymbol;
+import se.neava.compiler.symbol.VariableSymbol;
+import se.neava.compiler.type.NoType;
 import se.neava.compiler.type.Type;
 
-public class CodeGeneratorVisitor extends GravelBaseVisitor<Void>
+public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
 {
     Scope currentScope;
     boolean hadError = false;
     List<String> error = new LinkedList<String>();
-    CodeGenerator codeGen;
+    CodeGenerator codeGenerator;
     
     CodeGeneratorVisitor()
     {
-        codeGen = new CodeGenerator();
+        codeGenerator = new CodeGenerator();
     }
     
     String getCode()
     {
-        return codeGen.getCode();
+        return codeGenerator.getCode();
     }
     
     void reportError(ParserRuleContext ctx, String str)
@@ -33,142 +37,114 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Void>
         error.add(new String("Line " + ctx.start.getLine() + ": " + str));
     }
     
-    boolean passed()
+    public String dumpErrors()
     {
-        return !hadError;
+        String ret = "";
+        for(String s : error)
+            ret += s + "\n";
+        return ret;
+    }
+    
+    boolean error()
+    {
+        return hadError;
     }
 
-    public Void visitProgram(GravelParser.ProgramContext ctx) 
+    public Type visitProgram(GravelParser.ProgramContext ctx) 
     {
-        currentScope = new GlobalScope(ctx);
+        currentScope = new GlobalScope(codeGenerator, ctx);
         return visitChildren(ctx); 
     }    
     
-    public Void visitExternDeclaration(GravelParser.ExternDeclarationContext ctx) 
+    public Type visitExternDeclaration(GravelParser.ExternDeclarationContext ctx) 
     {
         String name = ctx.identifier().getText();
-        String lbl = codeGen.makeLabel(name);
+        String lbl = codeGenerator.makeLabel(name);
         currentScope.getMethod(name).setLabel(lbl);
         
-        codeGen.emitExternLabel(lbl);
-        codeGen.emitExternln("\"" + name + "\"");
+        codeGenerator.emitExternLabel(lbl);
+        codeGenerator.emitExternln("\"" + name + "\"");
         return visitChildren(ctx); 
     }
     
-    public Void visitClassInstanceDeclaration(@NotNull GravelParser.ClassInstanceDeclarationContext ctx) 
+    public Type visitClassInstanceDeclaration(@NotNull GravelParser.ClassInstanceDeclarationContext ctx) 
     { 
         String className = ctx.identifier(0).getText();
         String identifierName = ctx.identifier(1).getText();
         
         if(identifierName.equals("main") && className.equals("Main"))
-            codeGen.emitDataDirective(".entry");
-        String lbl = codeGen.makeLabel(identifierName);
-        codeGen.emitDataLabel(lbl);
+            codeGenerator.emitDataDirective(".entry");
+        String lbl = codeGenerator.makeLabel(identifierName);
+        codeGenerator.emitDataLabel(lbl);
         int size = currentScope.getClassScope(className).getSize();
-        codeGen.emitDataln("byte[" + size + "]");
+        codeGenerator.emitDataln("byte[" + size + "]");
         
         return visitChildren(ctx); 
     }
 
-    public Void visitClassDefinition(GravelParser.ClassDefinitionContext ctx) 
+    public Type visitClassDefinition(GravelParser.ClassDefinitionContext ctx) 
     {
         String name = ctx.identifier().getText();
         currentScope = currentScope.getClassScope(name);
         return visitChildren(ctx); 
     }
     
-    public Void visitMethodDefinition(GravelParser.MethodDefinitionContext ctx) 
+    public Type visitMethodDefinition(GravelParser.MethodDefinitionContext ctx) 
     { 
-        currentScope = new MethodScope(ctx);
+        currentScope = new MethodScope(currentScope, ctx);
+        MethodSymbol s = currentScope.getMethod(ctx.identifier(0).getText());
+        codeGenerator.emitProgramLabel(s.getLabel());
+        return visitChildren(ctx);
+    }
+    
+    public Type visitMethodVariableDefinition(@NotNull GravelParser.MethodVariableDefinitionContext ctx) 
+    { 
+        if(!((MethodScope) currentScope).addVariable(ctx.identifier().getText(), Type.CreateType(ctx.type())))
+            reportError(ctx, "Maybe not overload argument " + ctx.identifier().getText());
         return visitChildren(ctx); 
     }
+    
+    public Type visitIdentifierExp(@NotNull GravelParser.IdentifierExpContext ctx) 
+    {
+        VariableSymbol s = currentScope.getVariable(ctx.getText());
+        if(s == null)
+        {
+            reportError(ctx, "Undeclared identifier " + ctx.getText());
+            return new NoType();
+        }
+        return visitChildren(ctx);
+    }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
        
-    @Override public Void visitReturnStatement(@NotNull GravelParser.ReturnStatementContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitReturnStatement(@NotNull GravelParser.ReturnStatementContext ctx) 
+    {
+        Type t = visit(ctx.expression());
+        if(!t.equals(((MethodScope) currentScope).getMethod().getSignature().get(0)))
+        {
+            reportError(ctx, "Return type mismatch.");
+            return new NoType();
+        }
+        return t;
+    }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitLteExp(@NotNull GravelParser.LteExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitLteExp(@NotNull GravelParser.LteExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitIndirectionExp(@NotNull GravelParser.IndirectionExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-
-    @Override public Void visitTrueExp(@NotNull GravelParser.TrueExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitType(@NotNull GravelParser.TypeContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitLtExp(@NotNull GravelParser.LtExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitFunctionCall(@NotNull GravelParser.FunctionCallContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitMulExp(@NotNull GravelParser.MulExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitTime(@NotNull GravelParser.TimeContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitSubExp(@NotNull GravelParser.SubExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitBaseType(@NotNull GravelParser.BaseTypeContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitAsyncStatement(@NotNull GravelParser.AsyncStatementContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Void visitFalseExp(@NotNull GravelParser.FalseExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitIndirectionExp(@NotNull GravelParser.IndirectionExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
@@ -176,142 +152,213 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Void>
      * {@link #visitChildren} on {@code ctx}.</p>
      */
 
-    @Override public Void visitClassVariableDeclaration(@NotNull GravelParser.ClassVariableDeclarationContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitTrueExp(@NotNull GravelParser.TrueExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitNumber(@NotNull GravelParser.NumberContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitType(@NotNull GravelParser.TypeContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitDivExp(@NotNull GravelParser.DivExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitLtExp(@NotNull GravelParser.LtExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitIfStatement(@NotNull GravelParser.IfStatementContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitFunctionCall(@NotNull GravelParser.FunctionCallContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitFunctionCallExp(@NotNull GravelParser.FunctionCallExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitMulExp(@NotNull GravelParser.MulExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitStatement(@NotNull GravelParser.StatementContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitTime(@NotNull GravelParser.TimeContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitAssignment(@NotNull GravelParser.AssignmentContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitSubExp(@NotNull GravelParser.SubExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitMethodBody(@NotNull GravelParser.MethodBodyContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitBaseType(@NotNull GravelParser.BaseTypeContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitLvalue(@NotNull GravelParser.LvalueContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitAsyncStatement(@NotNull GravelParser.AsyncStatementContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitWhileStatement(@NotNull GravelParser.WhileStatementContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitFalseExp(@NotNull GravelParser.FalseExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitAddExp(@NotNull GravelParser.AddExpContext ctx) { return visitChildren(ctx); }
+
+    @Override public Type visitClassVariableDeclaration(@NotNull GravelParser.ClassVariableDeclarationContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitNumExp(@NotNull GravelParser.NumExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitNumber(@NotNull GravelParser.NumberContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitFunctionPtr(@NotNull GravelParser.FunctionPtrContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitDivExp(@NotNull GravelParser.DivExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitString(@NotNull GravelParser.StringContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitIfStatement(@NotNull GravelParser.IfStatementContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitLogOrExp(@NotNull GravelParser.LogOrExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitFunctionCallExp(@NotNull GravelParser.FunctionCallExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitArrayLookupExp(@NotNull GravelParser.ArrayLookupExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitStatement(@NotNull GravelParser.StatementContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitBrackets(@NotNull GravelParser.BracketsContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitAssignment(@NotNull GravelParser.AssignmentContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitFunctionCallStatement(@NotNull GravelParser.FunctionCallStatementContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitMethodBody(@NotNull GravelParser.MethodBodyContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitIdentifier(@NotNull GravelParser.IdentifierContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitLvalue(@NotNull GravelParser.LvalueContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitGtExp(@NotNull GravelParser.GtExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitWhileStatement(@NotNull GravelParser.WhileStatementContext ctx) { return visitChildren(ctx); }
     
-    @Override public Void visitParExp(@NotNull GravelParser.ParExpContext ctx) { return visitChildren(ctx); }
+    public Type visitAddExp(@NotNull GravelParser.AddExpContext ctx) 
+    { 
+        visit(ctx.expression(1));
+        visit(ctx.expression(0));
+        return null;
+    }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    @Override public Type visitNumExp(@NotNull GravelParser.NumExpContext ctx) { return visitChildren(ctx); }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    @Override public Type visitFunctionPtr(@NotNull GravelParser.FunctionPtrContext ctx) { return visitChildren(ctx); }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    @Override public Type visitString(@NotNull GravelParser.StringContext ctx) { return visitChildren(ctx); }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    @Override public Type visitLogOrExp(@NotNull GravelParser.LogOrExpContext ctx) { return visitChildren(ctx); }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    @Override public Type visitArrayLookupExp(@NotNull GravelParser.ArrayLookupExpContext ctx) { return visitChildren(ctx); }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    @Override public Type visitBrackets(@NotNull GravelParser.BracketsContext ctx) { return visitChildren(ctx); }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    @Override public Type visitFunctionCallStatement(@NotNull GravelParser.FunctionCallStatementContext ctx) { return visitChildren(ctx); }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    @Override public Type visitIdentifier(@NotNull GravelParser.IdentifierContext ctx) { return visitChildren(ctx); }
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The default implementation returns the result of calling
+     * {@link #visitChildren} on {@code ctx}.</p>
+     */
+    @Override public Type visitGtExp(@NotNull GravelParser.GtExpContext ctx) { return visitChildren(ctx); }
+    
+    @Override public Type visitParExp(@NotNull GravelParser.ParExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
@@ -325,19 +372,19 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Void>
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitEqExp(@NotNull GravelParser.EqExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitEqExp(@NotNull GravelParser.EqExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitLogAndExp(@NotNull GravelParser.LogAndExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitLogAndExp(@NotNull GravelParser.LogAndExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
      *
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Void visitGteExp(@NotNull GravelParser.GteExpContext ctx) { return visitChildren(ctx); }
+    @Override public Type visitGteExp(@NotNull GravelParser.GteExpContext ctx) { return visitChildren(ctx); }
 }

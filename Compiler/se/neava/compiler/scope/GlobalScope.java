@@ -3,6 +3,7 @@ package se.neava.compiler.scope;
 import java.util.LinkedList;
 import java.util.List;
 
+import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.GravelParser.ClassDefinitionContext;
 import se.neava.compiler.GravelParser.ExternDeclarationContext;
 import se.neava.compiler.GravelParser.ProgramContext;
@@ -15,12 +16,12 @@ public class GlobalScope implements Scope
     List<MethodSymbol> externMethods = new LinkedList<MethodSymbol>();
     List<ClassScope> classScopes = new LinkedList<ClassScope>();
     
-    public GlobalScope(ProgramContext ctx)
+    public GlobalScope(CodeGenerator gen, ProgramContext ctx)
     {
         for(ExternDeclarationContext e : ctx.externDeclaration())
             externMethods.add(new MethodSymbol(e));
         for(ClassDefinitionContext e : ctx.classDefinition())
-            classScopes.add(new ClassScope(this, e));
+            classScopes.add(new ClassScope(gen, this, e));
     }
     
     public void addExternMethod(MethodSymbol symbol)
@@ -63,6 +64,16 @@ public class GlobalScope implements Scope
 
     @Override
     public Scope getParent() 
+    {
+        return null;
+    }
+    
+    public ClassScope getClassScope()
+    {
+        return null;
+    }
+    
+    public MethodScope getMethodScope()
     {
         return null;
     }

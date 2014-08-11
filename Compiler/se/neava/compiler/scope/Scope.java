@@ -10,5 +10,7 @@ public interface Scope
     public ClassInstanceSymbol getClassInstance(String str);
     public VariableSymbol getVariable(String str);
     public ClassScope getClassScope(String str);
+    public ClassScope getClassScope();
+    public MethodScope getMethodScope();
     public Scope getParent();
 }

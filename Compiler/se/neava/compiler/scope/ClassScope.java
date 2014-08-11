@@ -3,6 +3,7 @@ package se.neava.compiler.scope;
 import java.util.LinkedList;
 import java.util.List;
 
+import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.GravelParser.ClassDefinitionContext;
 import se.neava.compiler.GravelParser.ClassVariableDeclarationContext;
 import se.neava.compiler.GravelParser.MethodDefinitionContext;
@@ -20,11 +21,17 @@ public class ClassScope implements Scope
     List<MethodSymbol> methodSymbols = new LinkedList<MethodSymbol>();
     List<ClassVariableSymbol> variableSymbols = new LinkedList<ClassVariableSymbol>();
     
-    public ClassScope(Scope parent, ClassDefinitionContext ctx)
+    public ClassScope(CodeGenerator gen, Scope parent, ClassDefinitionContext ctx)
     {
+        className = ctx.identifier().getText();
         this.parent = parent;
         for(MethodDefinitionContext c : ctx.methodDefinition())
-            methodSymbols.add(new MethodSymbol(c));
+        {
+            MethodSymbol s = new MethodSymbol(c);
+            String lbl = gen.makeLabel(className + "_" + s.getName());
+            s.setLabel(lbl);
+            methodSymbols.add(s);
+        }
         for(ClassVariableDeclarationContext c : ctx.classVariableDeclaration())
             variableSymbols.add(new ClassVariableSymbol(c));
         className = ctx.identifier().getText();
@@ -67,6 +74,16 @@ public class ClassScope implements Scope
         if(className.equals(str))
             return this;
         return parent.getClassScope(str);
+    }
+    
+    public ClassScope getClassScope()
+    {
+        return this;
+    }
+    
+    public MethodScope getMethodScope()
+    {
+        return null;
     }
 
     @Override

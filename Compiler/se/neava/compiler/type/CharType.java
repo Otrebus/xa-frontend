@@ -12,4 +12,10 @@ public class CharType extends Type {
         return 1;
     }
     
+    public boolean equals(Type b)
+    {
+        if(!(b instanceof CharType))
+            return false;
+        return (isArray == ((CharType) b).isArray);
+    }
 }

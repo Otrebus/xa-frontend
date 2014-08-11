@@ -13,11 +13,12 @@ import se.neava.compiler.type.Type;
 // TODO: this doesn't have to be a visitor
 public class GlobalScopeVisitor extends GravelBaseVisitor<Scope> 
 {
+    /*
     GlobalScope globalScope;
     
     public GlobalScope visitProgram(ProgramContext ctx) 
     {
         globalScope = new GlobalScope(ctx);
         return globalScope;
-    }
+    }*/
     }

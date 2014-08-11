@@ -12,6 +12,11 @@ public class ClassVariableSymbol extends VariableSymbol
         this.label = label; 
     }
     
+    public String getLabel(String label)
+    {
+        return label;
+    }
+    
     public ClassVariableSymbol(ClassVariableDeclarationContext ctx) 
     {
         name = ctx.identifier().getText();
@@ -21,18 +26,15 @@ public class ClassVariableSymbol extends VariableSymbol
     @Override
     public void emitLoad() {
         // TODO Auto-generated method stub
-        
     }
 
     @Override
     public void emitStore() {
         // TODO Auto-generated method stub
-        
     }
 
     public Type getType() 
     {
         return type;
     }
-
 }
