@@ -48,20 +48,44 @@ public class MethodSymbol extends Symbol
         return signature;
     }
     
+    public int getTotalArgumentSize()
+    {
+        int size = 0;
+        for(int i = 1; i < signature.size(); i++)
+            size += signature.get(i).getSize();
+        return size;
+    }
+    
+    public Type getReturnType()
+    {
+        return signature.get(0);
+    }
+    
     public String getName()
     {
         return name;
     }
 
     @Override 
-    public void emitLoad() 
+    public String emitLoad() 
     {
+        return "";
     }
 
     @Override
-    public void emitStore() {
+    public String emitStore() {
+        return "";
         // TODO Auto-generated method stub
         
+    }
+    
+    String popTo(int fpOffset)
+    {
+        return "";
+    }
+    String popTo(String label)
+    {
+        return "";
     }
 
     public void setLabel(String label)

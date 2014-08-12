@@ -14,13 +14,15 @@ public class ClassInstanceSymbol extends Symbol
     }
     
     @Override
-    public void emitLoad() {
+    public String emitLoad() {
+        return label;
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void emitStore() {
+    public String emitStore() {
+        return label;
         // TODO Auto-generated method stub
         
     }

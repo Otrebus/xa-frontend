@@ -2,7 +2,9 @@ package se.neava.compiler.scope;
 
 import java.util.LinkedList;
 import java.util.List;
+
 import se.neava.compiler.GravelParser.MethodDefinitionContext;
+import se.neava.compiler.symbol.ArgumentVariableSymbol;
 import se.neava.compiler.symbol.ClassInstanceSymbol;
 import se.neava.compiler.symbol.LocalVariableSymbol;
 import se.neava.compiler.symbol.MethodSymbol;
@@ -11,11 +13,14 @@ import se.neava.compiler.type.Type;
 
 public class MethodScope implements Scope 
 {
-    List<LocalVariableSymbol> localVariables = new LinkedList<LocalVariableSymbol>();
+    List<VariableSymbol> localVariables = new LinkedList<VariableSymbol>();
     Scope parent;
     String name;
     Type returnType;
     MethodSymbol methodSymbol;
+    
+    int argumentVariableSize = 0;
+    int localVariableSize = 0;
     
     public MethodScope(Scope parent, MethodDefinitionContext ctx) 
     {
@@ -27,7 +32,8 @@ public class MethodScope implements Scope
         {
             Type type = Type.createType(ctx.type(i));
             String name = ctx.identifier(i).getText();
-            localVariables.add(new LocalVariableSymbol(name, type));
+            localVariables.add(new ArgumentVariableSymbol(name, type, argumentVariableSize));
+            argumentVariableSize += type.getSize();
         }
         methodSymbol = getMethod(name);
     }
@@ -54,7 +60,7 @@ public class MethodScope implements Scope
 
     public VariableSymbol getVariable(String str) 
     {
-        for(LocalVariableSymbol s : localVariables)
+        for(VariableSymbol s : localVariables)
             if(s.getName().equals(str))
                 return s;
         return parent.getVariable(str);
@@ -62,10 +68,11 @@ public class MethodScope implements Scope
     
     public boolean addVariable(String str, Type type)
     {
-        for(LocalVariableSymbol s : localVariables)
+        for(VariableSymbol s : localVariables)
             if(s.getName().equals(str))
                 return false;
-        localVariables.add(new LocalVariableSymbol(str, type));
+        localVariableSize += type.getSize();
+        localVariables.add(new LocalVariableSymbol(str, type, localVariableSize));
         return true;
     }
 

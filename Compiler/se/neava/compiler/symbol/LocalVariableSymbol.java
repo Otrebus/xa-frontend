@@ -5,23 +5,23 @@ import se.neava.compiler.type.Type;
 public class LocalVariableSymbol extends VariableSymbol 
 {
     Type type;
+    int position;
     
-    public LocalVariableSymbol(String name, Type type)
+    public LocalVariableSymbol(String name, Type type, int position)
     {
         this.name = name;
         this.type = type;
+        this.position = position;
     }
     
-    @Override
-    public void emitLoad() {
-        // TODO Auto-generated method stub
-        
+    public String emitLoad() 
+    {
+        return type.pushFrom(-position);        
     }
 
-    @Override
-    public void emitStore() {
-        // TODO Auto-generated method stub
-        
+    public String emitStore() 
+    {
+        return type.popTo(-position);
     }
 
     @Override
@@ -29,5 +29,4 @@ public class LocalVariableSymbol extends VariableSymbol
         // TODO Auto-generated method stub
         return type;
     }
-
 }

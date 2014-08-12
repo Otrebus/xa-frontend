@@ -42,4 +42,10 @@ public abstract class Type
     
     abstract public int getSize();
     abstract public String getSizeStr();
+    
+    public abstract String popTo(int fpOffset);
+    public abstract String popTo(String label);
+    
+    public abstract String pushFrom(int fpOffset);
+    public abstract String pushFrom(String label);
 }

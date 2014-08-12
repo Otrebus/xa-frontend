@@ -30,6 +30,14 @@ public class CompileTester {
                 "        return c + (char) 40;\r\n" + 
                 "    }\r\n" + 
                 "\r\n" + 
+                "    char test(char b)\r\n" + 
+                "    {\r\n" + 
+                "        char x;\r\n" + 
+                "        char y;\r\n" + 
+                "        char z;\r\n" + 
+                "        return x + y + z + b;\r\n" + 
+                "    }\r\n" + 
+                "\r\n" + 
                 "    void handleMessage(char length, char[] msg)\r\n" + 
                 "    {\r\n" + 
                 "        int i;\r\n" + 

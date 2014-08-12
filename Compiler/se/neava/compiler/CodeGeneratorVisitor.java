@@ -101,7 +101,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     public Type visitMethodVariableDefinition(@NotNull GravelParser.MethodVariableDefinitionContext ctx) 
     { 
         if(!((MethodScope) currentScope).addVariable(ctx.identifier().getText(), Type.createType(ctx.type())))
-            reportError(ctx, "Maybe not overload argument " + ctx.identifier().getText());
+            reportError(ctx, "May not overload argument " + ctx.identifier().getText());
         return visitChildren(ctx); 
     }
     
@@ -113,25 +113,27 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             reportError(ctx, "Undeclared identifier " + ctx.getText());
             return new NoType();
         }
+        codeGenerator.emitProgramString(s.emitLoad());
         return s.getType();
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
        
-    @Override public Type visitReturnStatement(@NotNull GravelParser.ReturnStatementContext ctx) 
+    public Type visitReturnStatement(@NotNull GravelParser.ReturnStatementContext ctx) 
     {
-        if(ctx.expression() == null)
-            return new VoidType();
-        Type t = visit(ctx.expression());
+        Type t = ctx.expression() != null ? visit(ctx.expression()) : new VoidType();
         if(!t.equals(((MethodScope) currentScope).getMethod().getSignature().get(0)))
         {
             reportError(ctx, "Return type mismatch.");
             return new NoType();
         }
+        MethodScope methodScope = (MethodScope) currentScope;
+        MethodSymbol sym = methodScope.getMethod(methodScope.getName());
+        int retSize = sym.getReturnType().getSize();
+        int argSize = sym.getTotalArgumentSize();
+        int retImm = Math.max(0, argSize - retSize);
+        
+        if(!t.equals(new VoidType()))
+            codeGenerator.emitProgramString("pop " + t.getSizeStr() + " [$fp+" + (4 + retImm) + "]");
+        codeGenerator.emitProgramString("ret " + retImm);
         return t;
     }
     
@@ -142,19 +144,8 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return type; 
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
     @Override public Type visitLteExp(@NotNull GravelParser.LteExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
     @Override public Type visitIndirectionExp(@NotNull GravelParser.IndirectionExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
@@ -354,13 +345,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Type visitFunctionCallStatement(@NotNull GravelParser.FunctionCallStatementContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitIdentifier(@NotNull GravelParser.IdentifierContext ctx) { return visitChildren(ctx); }
+
     /**
      * {@inheritDoc}
      *

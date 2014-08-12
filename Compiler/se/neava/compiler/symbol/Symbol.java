@@ -11,6 +11,6 @@ public abstract class Symbol
         return name;
     }
     
-    abstract void emitLoad();
-    abstract void emitStore();
+    abstract String emitLoad();
+    abstract String emitStore();
 }

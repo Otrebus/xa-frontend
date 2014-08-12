@@ -40,4 +40,32 @@ public class FunctionPointerType extends Type
                 return false;
         return true;
     }
+
+    @Override
+    public
+    String popTo(int fpOffset) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public
+    String popTo(String label) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public
+    String pushFrom(int fpOffset) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public
+    String pushFrom(String label) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }
