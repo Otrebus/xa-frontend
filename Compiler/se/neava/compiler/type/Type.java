@@ -1,5 +1,6 @@
 package se.neava.compiler.type;
 
+import se.neava.compiler.GravelParser.BaseTypeContext;
 import se.neava.compiler.GravelParser.TypeContext;
 
 public abstract class Type 
@@ -13,28 +14,32 @@ public abstract class Type
     public static final int CLASS = 6;
     boolean isArray;
 
-    public static Type CreateType(TypeContext ctx)
+    public static Type createType(TypeContext ctx)
     {
-        boolean isArray = true;
-        if(ctx.brackets() == null)
-            isArray = false;
+        Type type = createType(ctx.baseType()); // lol
+        type.isArray = ctx.brackets() == null ? false : true;
+        return type;
+    }
+    
+    public static Type createType(BaseTypeContext ctx)
+    {
+        if(ctx.functionPtr() != null)
+            return new FunctionPointerType(ctx.functionPtr());
         
-        if(ctx.baseType().functionPtr() != null)
-            return new FunctionPointerType(ctx.baseType().functionPtr());
-        
-        String typeStr = ctx.baseType().getText();
+        String typeStr = ctx.getText();
         if(typeStr.equals("char"))
-            return new CharType(isArray);
+            return new CharType(false);
         else if(typeStr.equals("int"))
-            return new IntType(isArray);
+            return new IntType(false);
         else if(typeStr.equals("long"))
-            return new LongType(isArray);
-        else if(typeStr.equals("bool"))
-            return new BoolType(isArray);
+            return new LongType(false);
+        else if(typeStr.equals(false))
+            return new BoolType(false);
         else if(typeStr.equals("void"))
-            return new VoidType(isArray);
+            return new VoidType();
         return null;
     }
     
     abstract public int getSize();
+    abstract public String getSizeStr();
 }

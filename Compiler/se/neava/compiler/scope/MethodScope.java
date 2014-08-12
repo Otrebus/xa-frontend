@@ -20,12 +20,12 @@ public class MethodScope implements Scope
     public MethodScope(Scope parent, MethodDefinitionContext ctx) 
     {
         this.parent = parent;
-        returnType = Type.CreateType(ctx.type(0));
+        returnType = Type.createType(ctx.type(0));
         name = ctx.identifier(0).getText();
         
         for(int i = 1; i < ctx.identifier().size(); i++)
         {
-            Type type = Type.CreateType(ctx.type(i));
+            Type type = Type.createType(ctx.type(i));
             String name = ctx.identifier(i).getText();
             localVariables.add(new LocalVariableSymbol(name, type));
         }

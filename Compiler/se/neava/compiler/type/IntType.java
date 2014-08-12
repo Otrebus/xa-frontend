@@ -12,7 +12,12 @@ public class IntType extends Type
         return 2;
     }
     
-    public boolean equals(Type b)
+    public String getSizeStr()
+    {
+        return "word";
+    }
+    
+    public boolean equals(Object b)
     {
         if(!(b instanceof IntType))
             return false;

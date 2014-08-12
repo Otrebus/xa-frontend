@@ -12,7 +12,12 @@ public class LongType extends Type
         return 4;
     }
     
-    public boolean equals(Type b)
+    public String getSizeStr()
+    {
+        return "dword";
+    }
+    
+    public boolean equals(Object b)
     {
         if(!(b instanceof LongType))
             return false;

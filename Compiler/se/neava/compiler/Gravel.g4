@@ -46,7 +46,7 @@ expression :
     identifier #identifierExp |
     'true' #trueExp |
     'false' #falseExp |
-    NUM #numExp |
+    '(' baseType ')' NUM #numExp |
     identifier ('[' expression ']')? #arrayLookupExp
     | identifier '.' identifier #indirectionExp
     | functionCall #functionCallExp

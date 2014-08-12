@@ -12,10 +12,10 @@ public class FunctionPointerType extends Type
     public FunctionPointerType(FunctionPtrContext ctx)
     {
         int nTypes = ctx.type().size();
-        signature.add(Type.CreateType(ctx.type(nTypes - 1)));
+        signature.add(Type.createType(ctx.type(nTypes - 1)));
         
         for(int i = 0; i < ctx.type().size() - 1; i++)
-            signature.add(Type.CreateType(ctx.type(i)));
+            signature.add(Type.createType(ctx.type(i)));
     }
     
     public int getSize()
@@ -23,7 +23,12 @@ public class FunctionPointerType extends Type
         return 2;
     }
     
-    public boolean equals(Type b)
+    public String getSizeStr()
+    {
+        return "word";
+    }
+    
+    public boolean equals(Object b)
     {
         if(!(b instanceof FunctionPointerType))
             return false;

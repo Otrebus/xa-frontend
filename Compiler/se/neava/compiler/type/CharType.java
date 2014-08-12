@@ -12,7 +12,12 @@ public class CharType extends Type {
         return 1;
     }
     
-    public boolean equals(Type b)
+    public String getSizeStr()
+    {
+        return "byte";
+    }
+    
+    public boolean equals(Object b)
     {
         if(!(b instanceof CharType))
             return false;

@@ -20,7 +20,7 @@ public class ClassVariableSymbol extends VariableSymbol
     public ClassVariableSymbol(ClassVariableDeclarationContext ctx) 
     {
         name = ctx.identifier().getText();
-        type = Type.CreateType(ctx.type());
+        type = Type.createType(ctx.type());
     }
 
     @Override

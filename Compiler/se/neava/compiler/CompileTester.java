@@ -27,17 +27,17 @@ public class CompileTester {
                 "{\r\n" + 
                 "    char toUpper(char c)\r\n" + 
                 "    {\r\n" + 
-                "        return c + 40;\r\n" + 
+                "        return c + (char) 40;\r\n" + 
                 "    }\r\n" + 
                 "\r\n" + 
                 "    void handleMessage(char length, char[] msg)\r\n" + 
                 "    {\r\n" + 
                 "        int i;\r\n" + 
-                "        i = 0;\r\n" + 
+                "        i = (int) 0;\r\n" + 
                 "        while(i < length)\r\n" + 
                 "        {\r\n" + 
                 "            msg[i] = toUpper(msg[i]);\r\n" + 
-                "            i = i + 1;\r\n" + 
+                "            i = i + (int) 1;\r\n" + 
                 "        }\r\n" + 
                 "        uartSend(length, msg);\r\n" + 
                 "        blnkr.blink();\r\n" + 
@@ -63,7 +63,7 @@ public class CompileTester {
                 "    {\r\n" + 
                 "        nBlinks = blinks;\r\n" + 
                 "        period = argPeriod;\r\n" + 
-                "        if(nBlinks > 0)\r\n" + 
+                "        if(nBlinks > (int) 0)\r\n" + 
                 "            blink();\r\n" + 
                 "        return;\r\n" + 
                 "    }\r\n" + 
@@ -71,9 +71,9 @@ public class CompileTester {
                 "    void blink()\r\n" + 
                 "    {\r\n" + 
                 "        toggleLed();\r\n" + 
-                "        nBlinks = nBlinks - 1;\r\n" + 
-                "        if(nBlinks > 0)\r\n" + 
-                "            after period msec before 10 msec blink();\r\n" + 
+                "        nBlinks = nBlinks - (int) 1;\r\n" + 
+                "        if(nBlinks > (int) 0)\r\n" + 
+                "            after period msec before (long) 10 msec blink();\r\n" + 
                 "        return;\r\n" + 
                 "    }\r\n" + 
                 "}"));

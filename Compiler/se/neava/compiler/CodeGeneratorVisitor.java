@@ -13,6 +13,7 @@ import se.neava.compiler.symbol.MethodSymbol;
 import se.neava.compiler.symbol.VariableSymbol;
 import se.neava.compiler.type.NoType;
 import se.neava.compiler.type.Type;
+import se.neava.compiler.type.VoidType;
 
 public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
 {
@@ -99,7 +100,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     
     public Type visitMethodVariableDefinition(@NotNull GravelParser.MethodVariableDefinitionContext ctx) 
     { 
-        if(!((MethodScope) currentScope).addVariable(ctx.identifier().getText(), Type.CreateType(ctx.type())))
+        if(!((MethodScope) currentScope).addVariable(ctx.identifier().getText(), Type.createType(ctx.type())))
             reportError(ctx, "Maybe not overload argument " + ctx.identifier().getText());
         return visitChildren(ctx); 
     }
@@ -112,7 +113,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             reportError(ctx, "Undeclared identifier " + ctx.getText());
             return new NoType();
         }
-        return visitChildren(ctx);
+        return s.getType();
     }
     /**
      * {@inheritDoc}
@@ -123,6 +124,8 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
        
     @Override public Type visitReturnStatement(@NotNull GravelParser.ReturnStatementContext ctx) 
     {
+        if(ctx.expression() == null)
+            return new VoidType();
         Type t = visit(ctx.expression());
         if(!t.equals(((MethodScope) currentScope).getMethod().getSignature().get(0)))
         {
@@ -131,6 +134,14 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         }
         return t;
     }
+    
+    @Override public Type visitNumExp(GravelParser.NumExpContext ctx) 
+    { 
+        Type type = Type.createType(ctx.baseType());
+        codeGenerator.emitProgramString("push " + type.getSizeStr() + " " + Integer.parseInt(ctx.NUM().getText()));
+        return type; 
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -290,9 +301,15 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     
     public Type visitAddExp(@NotNull GravelParser.AddExpContext ctx) 
     { 
-        visit(ctx.expression(1));
-        visit(ctx.expression(0));
-        return null;
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+        {
+            reportError(ctx, "Type match error in addition");
+            return new NoType();
+        }
+        codeGenerator.emitProgramString("add " + a.getSizeStr());
+        return a;
     }
     /**
      * {@inheritDoc}
@@ -300,13 +317,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Type visitNumExp(@NotNull GravelParser.NumExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
     @Override public Type visitFunctionPtr(@NotNull GravelParser.FunctionPtrContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}

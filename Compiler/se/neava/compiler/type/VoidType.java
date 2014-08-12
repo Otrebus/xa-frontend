@@ -2,13 +2,18 @@ package se.neava.compiler.type;
 
 public class VoidType extends Type
 {
-    public VoidType(boolean isArray) 
+    public VoidType() 
     {
-        this.isArray = isArray;
+        this.isArray = false;
     }
     
     public int getSize()
     {
         return 0;
+    }
+    
+    public String getSizeStr()
+    {
+        return "";
     }
 }
