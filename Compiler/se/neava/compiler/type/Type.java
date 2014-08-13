@@ -1,5 +1,7 @@
 package se.neava.compiler.type;
 
+import se.neava.compiler.CodeGeneratorVisitor;
+import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.GravelParser.BaseTypeContext;
 import se.neava.compiler.GravelParser.TypeContext;
 
@@ -40,6 +42,11 @@ public abstract class Type
         return null;
     }
     
+    public boolean isArray()
+    {
+        return isArray;
+    }
+    
     abstract public int getSize();
     abstract public String getSizeStr();
     
@@ -48,4 +55,6 @@ public abstract class Type
     
     public abstract String pushFrom(int fpOffset);
     public abstract String pushFrom(String label);
+    
+    public abstract Type pushFrom(CodeGeneratorVisitor codeGen, ArrayLookupExpContext ctx);
 }

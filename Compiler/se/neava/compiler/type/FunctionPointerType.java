@@ -3,7 +3,9 @@ package se.neava.compiler.type;
 import java.util.LinkedList;
 import java.util.List;
 
+import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser;
+import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.GravelParser.FunctionPtrContext;
 
 public class FunctionPointerType extends Type 
@@ -67,5 +69,11 @@ public class FunctionPointerType extends Type
     String pushFrom(String label) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public Type pushFrom(CodeGeneratorVisitor codeGen, ArrayLookupExpContext ctx) {
+        // TODO Auto-generated method stub
+        return this;
     }
 }

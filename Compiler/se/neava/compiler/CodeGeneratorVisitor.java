@@ -11,6 +11,7 @@ import se.neava.compiler.scope.MethodScope;
 import se.neava.compiler.scope.Scope;
 import se.neava.compiler.symbol.MethodSymbol;
 import se.neava.compiler.symbol.VariableSymbol;
+import se.neava.compiler.type.IntType;
 import se.neava.compiler.type.NoType;
 import se.neava.compiler.type.Type;
 import se.neava.compiler.type.VoidType;
@@ -21,6 +22,12 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     boolean hadError = false;
     List<String> error = new LinkedList<String>();
     CodeGenerator codeGenerator;
+    boolean mute;
+    
+    public CodeGenerator getCodeGenerator()
+    {
+        return codeGenerator;
+    }
     
     CodeGeneratorVisitor()
     {
@@ -32,7 +39,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return codeGenerator.getCode();
     }
     
-    void reportError(ParserRuleContext ctx, String str)
+    public void reportError(ParserRuleContext ctx, String str)
     {
         hadError = true;
         error.add(new String("Line " + ctx.start.getLine() + ": " + str));
@@ -261,19 +268,12 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Type visitStatement(@NotNull GravelParser.StatementContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitAssignment(@NotNull GravelParser.AssignmentContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
+    public Type visitAssignment(@NotNull GravelParser.AssignmentContext ctx) 
+    { 
+        return visitChildren(ctx); 
+    }
+    
     @Override public Type visitMethodBody(@NotNull GravelParser.MethodBodyContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
@@ -330,7 +330,15 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Type visitArrayLookupExp(@NotNull GravelParser.ArrayLookupExpContext ctx) { return visitChildren(ctx); }
+    public Type visitArrayLookupExp(@NotNull GravelParser.ArrayLookupExpContext ctx)
+    {
+        boolean wasMute = codeGenerator.mute;
+        codeGenerator.mute(); // TODO: replace this shit with a straight TypeVisitor
+        Type a = visit(ctx.expression(0));
+        if(!wasMute)
+            codeGenerator.unmute();
+        return a.pushFrom(this, ctx);
+    }
     /**
      * {@inheritDoc}
      *

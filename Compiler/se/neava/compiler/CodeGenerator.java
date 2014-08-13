@@ -9,6 +9,7 @@ public class CodeGenerator
     String programString = ".program\n";
     String externString = ".extern\n";
     Set<String> labels = new TreeSet<String>();
+    public boolean mute;
     
     public String getCode()
     {
@@ -17,47 +18,56 @@ public class CodeGenerator
     
     public void emitProgramLabel(String str)
     {
-        programString += str + ":\n";
+        if(!mute)
+            programString += str + ":\n";
     }
     
     public void emitProgramDirective(String str)
     {
-        programString += str + "\n";
+        if(!mute)
+            programString += str + "\n";
     }
     
     public void emitProgramString(String str)
     {
-        programString += "  " + str + "\n";
+        if(!mute)
+            programString += "  " + str + "\n";
     }
     
     public void emitDataLabel(String str)
     {
-        dataString += str + ":\n";
+        if(!mute)
+            dataString += str + ":\n";
     }
     
     public void emitDataln(String str)
     {
-        dataString += "  " + str + "\n";
+        if(!mute)
+            dataString += "  " + str + "\n";
     }
     
     public void emitDataDirective(String str)
     {
-        dataString += str + "\n";
+        if(!mute)
+            dataString += str + "\n";
     }
     
     public void emitExternLabel(String str)
     {
-        externString += str + ":\n";
+        if(!mute)
+            externString += str + ":\n";
     }
     
     public void emitExternln(String str)
     {
-        externString += "  " + str + "\n";
+        if(!mute)
+            externString += "  " + str + "\n";
     }
     
     public void emitExternDirective(String str)
     {
-        externString += str + "\n";
+        if(!mute)
+            externString += str + "\n";
     }
     
     public String makeLabel(String suggestion)
@@ -67,4 +77,15 @@ public class CodeGenerator
             str = suggestion + n;
         return str;
     }
+    
+    public void mute()
+    {
+        mute = true;
+    }
+    
+    public void unmute()
+    {
+        mute = false;
+    }
+    
 }

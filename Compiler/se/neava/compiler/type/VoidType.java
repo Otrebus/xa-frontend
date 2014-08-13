@@ -1,5 +1,8 @@
 package se.neava.compiler.type;
 
+import se.neava.compiler.CodeGeneratorVisitor;
+import se.neava.compiler.GravelParser.ArrayLookupExpContext;
+
 public class VoidType extends Type
 {
     public VoidType() 
@@ -50,5 +53,10 @@ public class VoidType extends Type
     String pushFrom(String label) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    public Type pushFrom(CodeGeneratorVisitor cgv, ArrayLookupExpContext ctx)
+    {
+        return this;
     }
 }
