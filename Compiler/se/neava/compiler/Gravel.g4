@@ -10,7 +10,7 @@ TEXTNUM : (TEXT)+(NUM | TEXT)* ;
 
 type : baseType brackets? ;
 
-brackets : ('[' ']') ;
+brackets : ('[' (NUM)? ']') ;
 
 baseType : 'bool' | 'int' | 'char' | 'long' | identifier | 'void' | functionPtr;
 

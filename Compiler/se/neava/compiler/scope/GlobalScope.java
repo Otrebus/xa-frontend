@@ -13,6 +13,7 @@ import se.neava.compiler.symbol.VariableSymbol;
 
 public class GlobalScope implements Scope 
 {
+    List<ClassInstanceSymbol> classInstances = new LinkedList<ClassInstanceSymbol>();
     List<MethodSymbol> externMethods = new LinkedList<MethodSymbol>();
     List<ClassScope> classScopes = new LinkedList<ClassScope>();
     
@@ -52,8 +53,15 @@ public class GlobalScope implements Scope
 
     @Override
     public ClassInstanceSymbol getClassInstance(String str) {
-        // TODO Auto-generated method stub
+        for(ClassInstanceSymbol s : classInstances)
+            if(str.equals(s.getName()))
+                return s;
         return null;
+    }
+    
+    public void addClassInstance(ClassInstanceSymbol sym)
+    {
+        classInstances.add(sym);
     }
 
     @Override

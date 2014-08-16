@@ -14,7 +14,7 @@ import se.neava.compiler.symbol.VariableSymbol;
 
 public class ClassScope implements Scope 
 {
-    private static final int HEADER_SIZE = 2;
+    private static final int HEADER_SIZE = 4;
     Scope parent;
     String className;
     String label;
@@ -32,8 +32,13 @@ public class ClassScope implements Scope
             s.setLabel(lbl);
             methodSymbols.add(s);
         }
+        int classVarPos = 4; // Synchronization vars are first 
         for(ClassVariableDeclarationContext c : ctx.classVariableDeclaration())
-            variableSymbols.add(new ClassVariableSymbol(c));
+        {
+            ClassVariableSymbol classVariableSymbol = new ClassVariableSymbol(c, classVarPos);
+            classVarPos += classVariableSymbol.getType().getSize();
+            variableSymbols.add(classVariableSymbol);
+        }
         className = ctx.identifier().getText();
     }
     
@@ -101,7 +106,7 @@ public class ClassScope implements Scope
     {
         int size = 0;
         for(VariableSymbol s : variableSymbols)
-            size += s.getType().getSize();
+            size += s.getType().getMemorySize();
         return HEADER_SIZE + size;
     }
 }

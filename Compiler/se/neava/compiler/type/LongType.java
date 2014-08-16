@@ -3,8 +3,13 @@ package se.neava.compiler.type;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 
-public class LongType extends Type 
+public class LongType extends Type implements Cloneable
 {
+    public LongType(LongType voidType) 
+    {
+        super((Type) voidType);
+    }
+    
     public LongType(boolean isArray)
     {
         this.isArray = isArray;
@@ -67,7 +72,12 @@ public class LongType extends Type
         cgv.getCodeGenerator().emitProgramString("push word " + getSize());
         cgv.getCodeGenerator().emitProgramString("mul word");
         cgv.getCodeGenerator().emitProgramString("add word");
-        cgv.getCodeGenerator().emitProgramString("push dword");
+        cgv.getCodeGenerator().emitProgramString("push word");
         return this;
+    }
+    
+    public Type clone()
+    {
+        return new LongType(this);
     }
 }

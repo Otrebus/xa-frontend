@@ -1,10 +1,11 @@
 package se.neava.compiler.symbol;
 
+import se.neava.compiler.CodeGenerator;
+import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.type.Type;
 
 public class ArgumentVariableSymbol extends VariableSymbol 
 {
-    Type type;
     int position;
     
     public ArgumentVariableSymbol(String name, Type type)
@@ -20,19 +21,65 @@ public class ArgumentVariableSymbol extends VariableSymbol
         this.position = position;
     }
     
-    public String emitLoad() 
+    public void emitArrayLoad(CodeGenerator codeGenerator) 
     {
-        return type.pushFrom(position + 4);
+        if(type.getArrayLength() == 0)
+        {
+            // First, we assume that the index of the array is on top of the stack
+            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
+            
+            codeGenerator.emitProgramString("push word [$fp+" + (4 + position) + "]"); // Array address now on top
+            codeGenerator.emitProgramString("add word"); // Add with offset
+            codeGenerator.emitProgramString("push " + type.getSizeStr()); // Data element now on top
+        }
+        else
+        {
+            // First, we assume that the index of the array is on top of the stack
+            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
+            
+            codeGenerator.emitProgramString("push word [$fp+" + (4 + position) + "]"); // Array address now on top
+            codeGenerator.emitProgramString("add word"); // Add with offset
+
+            codeGenerator.emitProgramString("add word"); // Add with offset
+            codeGenerator.emitProgramString("push " + type.getSizeStr()); // Data element now on top
+        }
     }
 
-    public String emitStore() 
+    public void emitArrayStore(CodeGenerator codeGenerator) 
     {
-        return type.popTo(position + 4);        
+        if(type.getArrayLength() == 0)
+        {
+            // First, we assume that the index of the array is on top of the stack
+            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
+            
+            codeGenerator.emitProgramString("push word [$fp-" + position + "]"); // Array address now on top
+            codeGenerator.emitProgramString("add word"); // Add with offset
+            codeGenerator.emitProgramString("pop " + type.getSizeStr()); // Pop to element
+        }
+        else
+        {
+            // First, we assume that the index of the array is on top of the stack
+            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
+            
+            codeGenerator.emitProgramString("push word [$fp-" + position + "]"); // Array address now on top
+            codeGenerator.emitProgramString("add word"); // Add with offset
+
+            codeGenerator.emitProgramString("add word"); // Add with offset
+            codeGenerator.emitProgramString("pop " + type.getSizeStr()); // Pop to element
+        }
     }
 
-    @Override
-    public Type getType() {
-        // TODO Auto-generated method stub
-        return type;
+    public void emitLoad(CodeGenerator codeGenerator) 
+    {
+        codeGenerator.emitProgramString("push word [$fp+" + (4 + position) + "]");
+    }
+
+    public void emitStore(CodeGenerator codeGenerator) 
+    {
+        codeGenerator.emitProgramString("pop word [$fp+" + (4 + position) + "]");
     }
 }

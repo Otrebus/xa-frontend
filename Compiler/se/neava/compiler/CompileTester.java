@@ -24,7 +24,8 @@ public class CompileTester {
                 "Blinker blnkr;\r\n" + 
                 "\r\n" + 
                 "class MessageHandler\r\n" + 
-                "{\r\n" + 
+                "{\r\n"
+                + "char[20] classvar;" + 
                 "    char toUpper(char c)\r\n" + 
                 "    {\r\n" + 
                 "        return c + (char) 40;\r\n" + 
@@ -42,13 +43,7 @@ public class CompileTester {
                 "    {\r\n" + 
                 "        int i;\r\n" + 
                 "        i = (int) 0;\r\n" + 
-                "        while(i < length)\r\n" + 
-                "        {\r\n" + 
-                "            msg[i] = toUpper(msg[i]);\r\n" + 
-                "            i = i + (int) 1;\r\n" + 
-                "        }\r\n" + 
-                "        uartSend(length, msg);\r\n" + 
-                "        blnkr.blink();\r\n" + 
+                "            classvar[i] = msgHndlr.toUpper(msg[i]);\r\n" + 
                 "        return;\r\n" + 
                 "    }\r\n" + 
                 "}\r\n" + 

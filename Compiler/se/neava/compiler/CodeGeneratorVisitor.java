@@ -6,9 +6,12 @@ import java.util.List;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 
+import se.neava.compiler.GravelParser.FunctionCallContext;
+import se.neava.compiler.scope.ClassScope;
 import se.neava.compiler.scope.GlobalScope;
 import se.neava.compiler.scope.MethodScope;
 import se.neava.compiler.scope.Scope;
+import se.neava.compiler.symbol.ClassInstanceSymbol;
 import se.neava.compiler.symbol.MethodSymbol;
 import se.neava.compiler.symbol.VariableSymbol;
 import se.neava.compiler.type.IntType;
@@ -39,10 +42,11 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return codeGenerator.getCode();
     }
     
-    public void reportError(ParserRuleContext ctx, String str)
+    public NoType reportError(ParserRuleContext ctx, String str)
     {
         hadError = true;
         error.add(new String("Line " + ctx.start.getLine() + ": " + str));
+        return new NoType();
     }
     
     public String dumpErrors()
@@ -84,8 +88,15 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             codeGenerator.emitDataDirective(".entry");
         String lbl = codeGenerator.makeLabel(identifierName);
         codeGenerator.emitDataLabel(lbl);
-        int size = currentScope.getClassScope(className).getSize();
+        
+        ClassScope classScope = currentScope.getClassScope(className);
+        if(classScope == null)
+            return reportError(ctx, "Class " + className + " not found");
+        int size = classScope.getSize();
         codeGenerator.emitDataln("byte[" + size + "]");
+        ClassInstanceSymbol sym = new ClassInstanceSymbol(classScope, identifierName);
+        sym.setLabel(lbl);
+        ((GlobalScope)currentScope).addClassInstance(sym);
         
         return visitChildren(ctx); 
     }
@@ -94,15 +105,22 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     {
         String name = ctx.identifier().getText();
         currentScope = currentScope.getClassScope(name);
-        return visitChildren(ctx); 
+        Type t = visitChildren(ctx);
+        currentScope = currentScope.getParent();
+        return t;
     }
     
     public Type visitMethodDefinition(GravelParser.MethodDefinitionContext ctx) 
     { 
+        ClassScope classScope = (ClassScope) currentScope;
         currentScope = new MethodScope(currentScope, ctx);
         MethodSymbol s = currentScope.getMethod(ctx.identifier(0).getText());
+        if(s.getName().equals("main") && classScope.getName().equals("Main"))
+            codeGenerator.emitProgramDirective(".entry");
         codeGenerator.emitProgramLabel(s.getLabel());
-        return visitChildren(ctx);
+        Type t = visitChildren(ctx);
+        currentScope = currentScope.getParent();
+        return t;
     }
     
     public Type visitMethodVariableDefinition(@NotNull GravelParser.MethodVariableDefinitionContext ctx) 
@@ -120,7 +138,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             reportError(ctx, "Undeclared identifier " + ctx.getText());
             return new NoType();
         }
-        codeGenerator.emitProgramString(s.emitLoad());
+        s.emitLoad(codeGenerator);
         return s.getType();
     }
        
@@ -176,13 +194,11 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Type visitLtExp(@NotNull GravelParser.LtExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitFunctionCall(@NotNull GravelParser.FunctionCallContext ctx) { return visitChildren(ctx); }
+
+    public Type visitFunctionCall(@NotNull GravelParser.FunctionCallContext ctx)
+    { 
+        return visitChildren(ctx); 
+    }
     /**
      * {@inheritDoc}
      *
@@ -254,13 +270,69 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Type visitIfStatement(@NotNull GravelParser.IfStatementContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitFunctionCallExp(@NotNull GravelParser.FunctionCallExpContext ctx) { return visitChildren(ctx); }
+
+    public Type visitFunctionCallExp(GravelParser.FunctionCallExpContext ctx) 
+    { 
+        FunctionCallContext c = ctx.functionCall();
+        
+        if(c.identifier().size() > 1)
+        {
+            String objName = c.identifier(0).getText();
+            String methodName = c.identifier(1).getText();
+            
+            ClassInstanceSymbol classInstanceSymbol = currentScope.getClassInstance(objName);
+            if(classInstanceSymbol == null)
+                return reportError(ctx, "Undeclared identifier " + objName);
+
+            ClassScope classScope = classInstanceSymbol.getClassScope();
+            MethodSymbol methodSymbol = classScope.getMethod(methodName);
+            if(methodSymbol == null)
+                return reportError(ctx, "Undeclared method " + methodName);
+           
+            List<Type> signature = methodSymbol.getSignature();
+            if(c.expression().size() != signature.size() - 1)
+                return reportError(ctx, "Method arity mismatch");
+            for(int i = signature.size() - 1; i >= 1; i--)
+            {
+                int j = i - 1;
+                Type ts = signature.get(i);
+                Type te = visit(c.expression(j));
+                if(!ts.equals(te))
+                    return reportError(ctx, "Argument mismatch");
+            }
+
+            codeGenerator.emitProgramString("push [" + classInstanceSymbol.getLabel() + "]");
+            codeGenerator.emitProgramString("push [" + methodSymbol.getLabel() + "]");
+            codeGenerator.emitProgramString("push [" + classInstanceSymbol.getLabel() + "]");
+            codeGenerator.emitProgramString("sync");
+            return signature.get(0);
+        }
+        else
+        {
+            String objName = currentScope.getClassScope().getName();
+            String methodName = c.identifier(1).getText();
+            
+            MethodSymbol methodSymbol = currentScope.getMethod(methodName);
+            if(methodSymbol == null)
+                return reportError(ctx, "Undeclared method " + methodName);
+           
+            List<Type> signature = methodSymbol.getSignature();
+            if(c.expression().size() != signature.size() - 1)
+                return reportError(ctx, "Method arity mismatch");
+            for(int i = signature.size() - 1; i >= 1; i--)
+            {
+                int j = i - 1;
+                Type ts = signature.get(i);
+                Type te = visit(c.expression(j));
+                if(!ts.equals(te))
+                    return reportError(ctx, "Argument mismatch");
+            }
+
+            codeGenerator.emitProgramString("push [$fp+4]");
+            codeGenerator.emitProgramString("call");
+            return signature.get(0);
+        }
+    }
     /**
      * {@inheritDoc}
      *
@@ -269,25 +341,56 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
      */
     @Override public Type visitStatement(@NotNull GravelParser.StatementContext ctx) { return visitChildren(ctx); }
 
-    public Type visitAssignment(@NotNull GravelParser.AssignmentContext ctx) 
+    public Type visitAssignment(GravelParser.AssignmentContext ctx) 
+    { 
+        // TODO: this is horrible, put in visitLvalue instead
+        String varName = ctx.lvalue().identifier().getText();
+        VariableSymbol var = currentScope.getVariable(varName);
+        boolean arrayAssignment = (ctx.lvalue().expression() != null);
+        Type b = var.getType();
+        if(arrayAssignment)
+        {
+            Type a = visit(ctx.expression());
+            Type indexType = visit(ctx.lvalue().expression());
+            if(!(indexType instanceof IntType))
+            {
+                reportError(ctx, "Index must be of type int");
+                return new NoType();
+            }
+            
+            b.isArray = false;
+            if(!b.equals(a))
+            {
+                reportError(ctx, "Type mismatch");
+                b.isArray = true;
+                return new NoType();
+            }
+            b.isArray = true;
+            var.emitArrayStore(codeGenerator);
+        }
+        else
+        {
+            Type a = visit(ctx.expression());
+            if(!b.equals(a))
+            {
+                reportError(ctx, "Type mismatch");
+                return new NoType();
+            }
+            var.emitStore(codeGenerator);
+
+        }
+        return b;
+    }
+    
+    public Type visitLvalue(GravelParser.LvalueContext ctx) 
     { 
         return visitChildren(ctx); 
     }
     
     @Override public Type visitMethodBody(@NotNull GravelParser.MethodBodyContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitLvalue(@NotNull GravelParser.LvalueContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
+
+
     @Override public Type visitWhileStatement(@NotNull GravelParser.WhileStatementContext ctx) { return visitChildren(ctx); }
     
     public Type visitAddExp(@NotNull GravelParser.AddExpContext ctx) 
@@ -337,7 +440,10 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type a = visit(ctx.expression(0));
         if(!wasMute)
             codeGenerator.unmute();
-        return a.pushFrom(this, ctx);
+           
+        Type t =  a.pushFrom(this, ctx);
+        t.isArray = false;
+        return t;
     }
     /**
      * {@inheritDoc}

@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.antlr.v4.runtime.RuleContext;
 
+import se.neava.compiler.CodeGenerator;
+import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.GravelParser.ClassDefinitionContext;
 import se.neava.compiler.GravelParser.ExternDeclarationContext;
 import se.neava.compiler.GravelParser.MethodDefinitionContext;
@@ -53,7 +55,7 @@ public class MethodSymbol extends Symbol
         int size = 0;
         for(int i = 1; i < signature.size(); i++)
             size += signature.get(i).getSize();
-        return size;
+        return size + 2;
     }
     
     public Type getReturnType()
@@ -66,28 +68,6 @@ public class MethodSymbol extends Symbol
         return name;
     }
 
-    @Override 
-    public String emitLoad() 
-    {
-        return "";
-    }
-
-    @Override
-    public String emitStore() {
-        return "";
-        // TODO Auto-generated method stub
-        
-    }
-    
-    String popTo(int fpOffset)
-    {
-        return "";
-    }
-    String popTo(String label)
-    {
-        return "";
-    }
-
     public void setLabel(String label)
     {
         this.label = label;
@@ -96,5 +76,27 @@ public class MethodSymbol extends Symbol
     public String getLabel()
     {
         return label;
+    }
+
+    public void emitArrayLoad(CodeGenerator codeGenerator) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    public void emitArrayStore(CodeGenerator codeGenerator) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void emitLoad(CodeGenerator codeGenerator) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void emitStore(CodeGenerator codeGenerator) {
+        // TODO Auto-generated method stub
+        
     }
 }

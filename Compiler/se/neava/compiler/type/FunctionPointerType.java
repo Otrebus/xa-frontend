@@ -8,7 +8,7 @@ import se.neava.compiler.GravelParser;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.GravelParser.FunctionPtrContext;
 
-public class FunctionPointerType extends Type 
+public class FunctionPointerType extends Type implements Cloneable 
 {
     List<Type> signature = new LinkedList<Type>();
     public FunctionPointerType(FunctionPtrContext ctx)
@@ -18,6 +18,11 @@ public class FunctionPointerType extends Type
         
         for(int i = 0; i < ctx.type().size() - 1; i++)
             signature.add(Type.createType(ctx.type(i)));
+    }
+    
+    public FunctionPointerType(FunctionPointerType voidType) 
+    {
+        super((Type) voidType);
     }
     
     public int getSize()
@@ -75,5 +80,10 @@ public class FunctionPointerType extends Type
     public Type pushFrom(CodeGeneratorVisitor codeGen, ArrayLookupExpContext ctx) {
         // TODO Auto-generated method stub
         return this;
+    }
+    
+    public Type clone()
+    {
+        return new FunctionPointerType(this);
     }
 }

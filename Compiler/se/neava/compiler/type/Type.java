@@ -5,7 +5,7 @@ import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.GravelParser.BaseTypeContext;
 import se.neava.compiler.GravelParser.TypeContext;
 
-public abstract class Type 
+public abstract class Type implements Cloneable
 {
     public static final int BOOL = 0;
     public static final int CHAR = 1;
@@ -14,12 +14,33 @@ public abstract class Type
     public static final int FUNCTIONPTR = 4;
     public static final int VOID = 5;
     public static final int CLASS = 6;
-    boolean isArray;
+    public boolean isArray;
+    int arrayLength;
+    
+    public Type()
+    {}
+    
+    public Type(Type voidType) {
+        isArray = voidType.isArray;
+        arrayLength = voidType.arrayLength;
+    }
+
+    public int getArrayLength()
+    {
+        return arrayLength;
+    }
 
     public static Type createType(TypeContext ctx)
     {
-        Type type = createType(ctx.baseType()); // lol
+        Type type = createType(ctx.baseType());
         type.isArray = ctx.brackets() == null ? false : true;
+        if(type.isArray)
+        {
+            if(ctx.brackets().NUM() != null)
+            {
+                type.arrayLength = Integer.parseInt(ctx.brackets().NUM().getText());
+            }
+        }   
         return type;
     }
     
@@ -47,6 +68,15 @@ public abstract class Type
         return isArray;
     }
     
+    public int getMemorySize()
+    {
+        if(arrayLength > 0)
+            return arrayLength*getSize();
+        else if(isArray)
+            return 2;
+        return getSize();
+    }
+    
     abstract public int getSize();
     abstract public String getSizeStr();
     
@@ -57,4 +87,6 @@ public abstract class Type
     public abstract String pushFrom(String label);
     
     public abstract Type pushFrom(CodeGeneratorVisitor codeGen, ArrayLookupExpContext ctx);
+    
+    public abstract Type clone();
 }

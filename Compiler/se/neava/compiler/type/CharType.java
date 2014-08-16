@@ -4,8 +4,13 @@ import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 
 
-public class CharType extends Type {
+public class CharType extends Type implements Cloneable {
 
+    public CharType(CharType voidType) 
+    {
+        super((Type) voidType);
+    }
+    
     public CharType(boolean isArray) {
         this.isArray = isArray;
     }
@@ -68,5 +73,10 @@ public class CharType extends Type {
         cgv.getCodeGenerator().emitProgramString("add word");
         cgv.getCodeGenerator().emitProgramString("push byte");
         return this;
+    }
+    
+    public Type clone()
+    {
+        return new CharType(this);
     }
 }

@@ -3,8 +3,13 @@ package se.neava.compiler.type;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 
-public class BoolType extends Type 
+public class BoolType extends Type implements Cloneable 
 {
+    public BoolType(BoolType type)
+    {
+        super((Type) type);
+    }
+    
     public BoolType(boolean isArray)
     {
         this.isArray = isArray;
@@ -68,5 +73,10 @@ public class BoolType extends Type
         cgv.getCodeGenerator().emitProgramString("add word");
         cgv.getCodeGenerator().emitProgramString("push byte");
         return this;
+    }
+    
+    public Type clone()
+    {
+        return new BoolType(this);
     }
 }

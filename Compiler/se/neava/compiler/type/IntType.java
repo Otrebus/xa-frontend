@@ -3,8 +3,13 @@ package se.neava.compiler.type;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 
-public class IntType extends Type 
+public class IntType extends Type implements Cloneable
 {
+    public IntType(IntType voidType) 
+    {
+        super((Type) voidType);
+    }
+    
     public IntType(boolean isArray)
     {
         this.isArray = isArray;
@@ -69,5 +74,10 @@ public class IntType extends Type
         cgv.getCodeGenerator().emitProgramString("add word");
         cgv.getCodeGenerator().emitProgramString("push word");
         return this;
+    }
+    
+    public Type clone()
+    {
+        return new IntType(this);
     }
 }

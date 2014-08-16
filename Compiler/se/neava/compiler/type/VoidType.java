@@ -10,6 +10,11 @@ public class VoidType extends Type
         this.isArray = false;
     }
     
+    public VoidType(VoidType voidType) 
+    {
+        super((Type) voidType);
+    }
+
     public int getSize()
     {
         return 0;
@@ -58,5 +63,10 @@ public class VoidType extends Type
     public Type pushFrom(CodeGeneratorVisitor cgv, ArrayLookupExpContext ctx)
     {
         return this;
+    }
+    
+    public Type clone()
+    {
+        return new VoidType(this);
     }
 }

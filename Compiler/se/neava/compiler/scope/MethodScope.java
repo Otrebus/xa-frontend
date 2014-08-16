@@ -19,7 +19,7 @@ public class MethodScope implements Scope
     Type returnType;
     MethodSymbol methodSymbol;
     
-    int argumentVariableSize = 0;
+    int argumentVariableSize = 2;
     int localVariableSize = 0;
     
     public MethodScope(Scope parent, MethodDefinitionContext ctx) 
