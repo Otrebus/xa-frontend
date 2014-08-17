@@ -480,7 +480,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             }
 
             codeGenerator.emitProgramString("push word [$fp+4]");
-            codeGenerator.emitProgramString("call");
+            codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
             return signature.get(0);
         }
     }
@@ -650,7 +650,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             }
     
             codeGenerator.emitProgramString("push word [$fp+4]");
-            codeGenerator.emitProgramString("call");
+            codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
             
             if(methodSymbol.getReturnType().getMemorySize() > 0)
                 codeGenerator.emitProgramString("pop " + methodSymbol.getReturnType().getMemorySize());

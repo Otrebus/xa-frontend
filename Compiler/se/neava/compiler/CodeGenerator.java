@@ -10,6 +10,15 @@ public class CodeGenerator
     String externString = ".extern\n";
     Set<String> labels = new TreeSet<String>();
     public boolean mute;
+    int labelNo = 0;
+    
+    public String makeLabel()
+    {
+        String lbl = "label" + labelNo++;
+        if(labels.contains(lbl))
+            return makeLabel();
+        return lbl;
+    }
     
     public String getCode()
     {

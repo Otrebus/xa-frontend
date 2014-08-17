@@ -84,6 +84,10 @@ public interface Instruction extends Statement {
     
     public final static byte OP_JMP = 0x43;
     
+    public final static byte OP_CMPBYTE = 0x44;
+    public final static byte OP_CMPWORD = 0x45;
+    public final static byte OP_CMPDWORD = 0x46;
+    
     public byte[] getCode();
     public void fixAddress(int address);
 }

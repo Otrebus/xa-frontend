@@ -22,7 +22,7 @@ classDefinition : 'class' identifier '{' classVariableDeclaration* methodDefinit
 
 classVariableDeclaration : type identifier ';' ;
 
-methodDefinition : type identifier '(' (type identifier (',' type identifier )*)? ')' '{' methodBody '}' ;
+methodDefinition : type identifier '(' (type identifier (',' type identifier )*)? ')' '{' methodBody '}' ; 
 
 methodBody : methodVariableDefinition* statement* returnStatement;
 

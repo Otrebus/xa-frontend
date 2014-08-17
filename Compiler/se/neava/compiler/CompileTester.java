@@ -39,5 +39,12 @@ public class CompileTester {
         }
         else
             System.out.println(code);
+        Assembler asm = new Assembler();
+        try {
+            asm.assemble(code);
+        } catch (IOException | ParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 }

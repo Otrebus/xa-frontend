@@ -21,6 +21,7 @@ public class Parser
         parseMap.put("add", new AddParser());
         parseMap.put("sub", new SubParser());
         parseMap.put("mul", new MulParser());
+        parseMap.put("cmp", new CmpParser());
         parseMap.put("div", new DivParser());
         parseMap.put("mod", new ModParser());
         parseMap.put("and", new AndParser());
@@ -204,6 +205,17 @@ public class Parser
             lexer.expect(Token.Type.END);
             int size = getSize(tok.str);
             return new Mul(size);
+        }
+    }
+    
+    private static class CmpParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            lexer.expect(Token.Type.END);
+            int size = getSize(tok.str);
+            return new Cmp(size);
         }
     }
     
