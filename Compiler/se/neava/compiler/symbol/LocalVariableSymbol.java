@@ -69,11 +69,11 @@ public class LocalVariableSymbol extends VariableSymbol
 
     public void emitLoad(CodeGenerator codeGenerator) 
     {
-        codeGenerator.emitProgramString("push word [$fp-" + position + "]");
+        codeGenerator.emitProgramString("push " + type.getSizeStr() + " [$fp-" + position + "]");
     }
 
     public void emitStore(CodeGenerator codeGenerator) 
     {
-        codeGenerator.emitProgramString("pop word [$fp-" + position + "]");
+        codeGenerator.emitProgramString("pop word " + type.getSizeStr() + " [$fp-" + position + "]");
     }
 }

@@ -14,7 +14,9 @@ import se.neava.compiler.scope.Scope;
 import se.neava.compiler.symbol.ClassInstanceSymbol;
 import se.neava.compiler.symbol.MethodSymbol;
 import se.neava.compiler.symbol.VariableSymbol;
+import se.neava.compiler.type.FunctionPointerType;
 import se.neava.compiler.type.IntType;
+import se.neava.compiler.type.LongType;
 import se.neava.compiler.type.NoType;
 import se.neava.compiler.type.Type;
 import se.neava.compiler.type.VoidType;
@@ -45,7 +47,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     public NoType reportError(ParserRuleContext ctx, String str)
     {
         hadError = true;
-        error.add(new String("Line " + ctx.start.getLine() + ": " + str));
+        error.add(new String(ctx != null ? ("Line " + ctx.start.getLine() + ": ") : "" + str));
         return new NoType();
     }
     
@@ -60,6 +62,39 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     boolean error()
     {
         return hadError;
+    }
+    
+    public boolean addEntryPoint()
+    {
+        codeGenerator.emitDataDirective(".entry");
+        codeGenerator.emitDataLabel(codeGenerator.makeLabel("dummyEntryObject"));
+        codeGenerator.emitDataln("dword 0");
+        
+        codeGenerator.emitProgramDirective(".entry");
+        ClassInstanceSymbol mainSym = currentScope.getClassInstance("main");
+        if(mainSym == null)
+        {
+            reportError(null, "No main object!");
+            return false;
+        }
+        ClassScope mainScope = mainSym.getClassScope();
+        if(!mainScope.getName().equals("Main"))
+        {
+            reportError(null, "Main object not of type Main!");
+            return false;
+        }
+        
+        MethodSymbol methodSymbol = mainScope.getMethod("main");
+        if(methodSymbol == null)
+        {
+            reportError(null, "Main object not of type Main!");
+            return false;
+        }
+        
+        codeGenerator.emitProgramString("push Main_main");
+        codeGenerator.emitProgramString("push main");
+        codeGenerator.emitProgramString("sync");
+        return true;
     }
 
     public Type visitProgram(GravelParser.ProgramContext ctx) 
@@ -84,8 +119,6 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         String className = ctx.identifier(0).getText();
         String identifierName = ctx.identifier(1).getText();
         
-        if(identifierName.equals("main") && className.equals("Main"))
-            codeGenerator.emitDataDirective(".entry");
         String lbl = codeGenerator.makeLabel(identifierName);
         codeGenerator.emitDataLabel(lbl);
         
@@ -112,11 +145,9 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     
     public Type visitMethodDefinition(GravelParser.MethodDefinitionContext ctx) 
     { 
-        ClassScope classScope = (ClassScope) currentScope;
         currentScope = new MethodScope(currentScope, ctx);
         MethodSymbol s = currentScope.getMethod(ctx.identifier(0).getText());
-        if(s.getName().equals("main") && classScope.getName().equals("Main"))
-            codeGenerator.emitProgramDirective(".entry");
+
         codeGenerator.emitProgramLabel(s.getLabel());
         Type t = visitChildren(ctx);
         currentScope = currentScope.getParent();
@@ -145,14 +176,14 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     public Type visitReturnStatement(@NotNull GravelParser.ReturnStatementContext ctx) 
     {
         Type t = ctx.expression() != null ? visit(ctx.expression()) : new VoidType();
-        if(!t.equals(((MethodScope) currentScope).getMethod().getSignature().get(0)))
+        if(!t.equals(((MethodScope) currentScope).getMethod().getReturnType()))
         {
             reportError(ctx, "Return type mismatch.");
             return new NoType();
         }
         MethodScope methodScope = (MethodScope) currentScope;
         MethodSymbol sym = methodScope.getMethod(methodScope.getName());
-        int retSize = sym.getReturnType().getSize();
+        int retSize = sym.getReturnType().getMemorySize();
         int argSize = sym.getTotalArgumentSize();
         int retImm = Math.max(0, argSize - retSize);
         
@@ -171,13 +202,24 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
 
     @Override public Type visitLteExp(@NotNull GravelParser.LteExpContext ctx) { return visitChildren(ctx); }
 
-    @Override public Type visitIndirectionExp(@NotNull GravelParser.IndirectionExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+    public Type visitIndirectionExp(GravelParser.IndirectionExpContext ctx) 
+    {
+        String objName = ctx.identifier(0).getText();
+        String methodName = ctx.identifier(1).getText();
+        
+        ClassInstanceSymbol classInstanceSymbol = currentScope.getClassInstance(objName);
+        if(classInstanceSymbol == null)
+            return reportError(ctx, "Undeclared identifier " + objName);
+
+        ClassScope classScope = classInstanceSymbol.getClassScope();
+        MethodSymbol methodSymbol = classScope.getMethod(methodName);
+        if(methodSymbol == null)
+            return reportError(ctx, "Undeclared method " + methodName);
+        
+        codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
+        codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+        return new FunctionPointerType(methodSymbol);
+    }
 
     @Override public Type visitTrueExp(@NotNull GravelParser.TrueExpContext ctx) { return visitChildren(ctx); }
     /**
@@ -206,19 +248,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Type visitMulExp(@NotNull GravelParser.MulExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitTime(@NotNull GravelParser.TimeContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
     @Override public Type visitSubExp(@NotNull GravelParser.SubExpContext ctx) { return visitChildren(ctx); }
     /**
      * {@inheritDoc}
@@ -227,13 +257,134 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
      * {@link #visitChildren} on {@code ctx}.</p>
      */
     @Override public Type visitBaseType(@NotNull GravelParser.BaseTypeContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitAsyncStatement(@NotNull GravelParser.AsyncStatementContext ctx) { return visitChildren(ctx); }
+
+    public Type visitAsyncStatement(GravelParser.AsyncStatementContext ctx) 
+    { 
+        ClassInstanceSymbol classInstanceSymbol = null;
+        MethodSymbol methodSymbol;
+        FunctionCallContext c = ctx.functionCall();
+        
+        if(c.identifier().size() > 1)
+        {
+            String objName = c.identifier(0).getText();
+            String methodName = c.identifier(1).getText();
+            
+            classInstanceSymbol = currentScope.getClassInstance(objName);
+            if(classInstanceSymbol == null)
+                return reportError(ctx, "Undeclared identifier " + objName);
+
+            ClassScope classScope = classInstanceSymbol.getClassScope();
+            methodSymbol = classScope.getMethod(methodName);
+            if(methodSymbol == null)
+                return reportError(ctx, "Undeclared method " + methodName);
+        }
+        else
+        {
+            String methodName = c.identifier(0).getText();
+            
+            methodSymbol = currentScope.getMethod(methodName);
+            if(methodSymbol == null)
+            {
+                methodSymbol = currentScope.getExternMethod(methodName);
+                if(methodSymbol == null)
+                {
+                    methodSymbol = currentScope.getExternMethod(methodName);
+                    if(methodSymbol == null)
+                        return reportError(ctx, "Undeclared method " + methodName);
+                }
+            }
+        }
+        
+        List<Type> arguments = methodSymbol.getArguments();
+        if(c.expression().size() != arguments.size())
+            return reportError(ctx, "Method arity mismatch");        
+        
+        for(int i = arguments.size() - 1; i >= 0; i--)
+        {
+            Type ts = arguments.get(i);
+            Type te = visit(c.expression(i));
+            if(!ts.equals(te))
+                return reportError(ctx, "Argument mismatch");
+        }
+        
+        // Last push is "this", but this is repeated due to the requirements of async
+        // TODO: make this stuff less retarded?
+        if(classInstanceSymbol == null)
+            codeGenerator.emitProgramString("push word [$fp+4]");
+        else
+            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+        
+        codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
+        
+        if(classInstanceSymbol == null)
+            codeGenerator.emitProgramString("push word [$fp+4]");
+        else
+            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+        
+        if(ctx.after() != null)
+        {
+            Type a;
+            String unit;
+            if(ctx.before() != null)
+            {
+                a = visit(ctx.expression(1));
+                
+                if(!(a instanceof LongType))
+                    return reportError(ctx, "Time must be of type long");
+                unit = ctx.time(1).getText();
+                if(unit.equals("msec"))
+                {
+                    codeGenerator.emitProgramString("push dword 1000");
+                    codeGenerator.emitProgramString("mul dword");
+                }
+                else if(unit.equals("sec"))
+                {
+                    codeGenerator.emitProgramString("push dword 1000000");
+                    codeGenerator.emitProgramString("mul dword");
+                }
+            }
+            else
+                codeGenerator.emitProgramString("push dword 0");
+            a = visit(ctx.expression(0));
+            if(!(a instanceof LongType))
+                return reportError(ctx, "Time must be of type long");
+            unit = ctx.time(0).getText();
+            if(unit.equals("msec"))
+            {
+                codeGenerator.emitProgramString("push dword 1000");
+                codeGenerator.emitProgramString("mul dword");
+            }
+            else if(unit.equals("sec"))
+            {
+                codeGenerator.emitProgramString("push dword 1000000");
+                codeGenerator.emitProgramString("mul dword");
+            }
+        }
+        else
+        {
+            Type a = visit(ctx.expression(0));
+            
+            if(!(a instanceof LongType))
+                return reportError(ctx, "Time must be of type long");
+            String unit = ctx.time(0).getText();
+            if(unit.equals("msec"))
+            {
+                codeGenerator.emitProgramString("push dword 1000");
+                codeGenerator.emitProgramString("mul dword");
+            }
+            else if(unit.equals("sec"))
+            {
+                codeGenerator.emitProgramString("push dword 1000000");
+                codeGenerator.emitProgramString("mul dword");
+            }
+            codeGenerator.emitProgramString("push dword 0");
+        }
+        
+        codeGenerator.emitProgramString("push byte " + methodSymbol.getTotalArgumentSize());
+        codeGenerator.emitProgramString("async");
+        
+        return methodSymbol.getReturnType();
+    }
     /**
      * {@inheritDoc}
      *
@@ -274,7 +425,6 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     public Type visitFunctionCallExp(GravelParser.FunctionCallExpContext ctx) 
     { 
         FunctionCallContext c = ctx.functionCall();
-        
         if(c.identifier().size() > 1)
         {
             String objName = c.identifier(0).getText();
@@ -289,57 +439,51 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             if(methodSymbol == null)
                 return reportError(ctx, "Undeclared method " + methodName);
            
-            List<Type> signature = methodSymbol.getSignature();
-            if(c.expression().size() != signature.size() - 1)
+            List<Type> signature = methodSymbol.getArguments();
+            if(c.expression().size() != signature.size())
                 return reportError(ctx, "Method arity mismatch");
-            for(int i = signature.size() - 1; i >= 1; i--)
+            for(int i = signature.size() - 1; i >= 0; i--)
             {
-                int j = i - 1;
                 Type ts = signature.get(i);
-                Type te = visit(c.expression(j));
+                Type te = visit(c.expression(i));
                 if(!ts.equals(te))
                     return reportError(ctx, "Argument mismatch");
             }
 
-            codeGenerator.emitProgramString("push [" + classInstanceSymbol.getLabel() + "]");
-            codeGenerator.emitProgramString("push [" + methodSymbol.getLabel() + "]");
-            codeGenerator.emitProgramString("push [" + classInstanceSymbol.getLabel() + "]");
+            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+            codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
+            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
             codeGenerator.emitProgramString("sync");
             return signature.get(0);
         }
         else
         {
-            String objName = currentScope.getClassScope().getName();
-            String methodName = c.identifier(1).getText();
+            String methodName = c.identifier(0).getText();
             
             MethodSymbol methodSymbol = currentScope.getMethod(methodName);
             if(methodSymbol == null)
-                return reportError(ctx, "Undeclared method " + methodName);
+            {
+                methodSymbol = currentScope.getExternMethod(methodName);
+                if(methodSymbol == null)
+                    return reportError(ctx, "Undeclared method " + methodName);
+            }
            
-            List<Type> signature = methodSymbol.getSignature();
+            List<Type> signature = methodSymbol.getArguments();
             if(c.expression().size() != signature.size() - 1)
                 return reportError(ctx, "Method arity mismatch");
-            for(int i = signature.size() - 1; i >= 1; i--)
+            for(int i = signature.size() - 1; i >= 0; i--)
             {
-                int j = i - 1;
                 Type ts = signature.get(i);
-                Type te = visit(c.expression(j));
+                Type te = visit(c.expression(i));
                 if(!ts.equals(te))
                     return reportError(ctx, "Argument mismatch");
             }
 
-            codeGenerator.emitProgramString("push [$fp+4]");
+            codeGenerator.emitProgramString("push word [$fp+4]");
             codeGenerator.emitProgramString("call");
             return signature.get(0);
         }
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitStatement(@NotNull GravelParser.StatementContext ctx) { return visitChildren(ctx); }
 
     public Type visitAssignment(GravelParser.AssignmentContext ctx) 
     { 
@@ -381,27 +525,15 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         }
         return b;
     }
-    
-    public Type visitLvalue(GravelParser.LvalueContext ctx) 
-    { 
-        return visitChildren(ctx); 
-    }
-    
-    @Override public Type visitMethodBody(@NotNull GravelParser.MethodBodyContext ctx) { return visitChildren(ctx); }
-
-
 
     @Override public Type visitWhileStatement(@NotNull GravelParser.WhileStatementContext ctx) { return visitChildren(ctx); }
     
-    public Type visitAddExp(@NotNull GravelParser.AddExpContext ctx) 
+    public Type visitAddExp(GravelParser.AddExpContext ctx) 
     { 
         Type a = visit(ctx.expression(1));
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
-        {
-            reportError(ctx, "Type match error in addition");
-            return new NoType();
-        }
+            return reportError(ctx, "Type match error in addition");
         codeGenerator.emitProgramString("add " + a.getSizeStr());
         return a;
     }
@@ -458,7 +590,73 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
      * <p>The default implementation returns the result of calling
      * {@link #visitChildren} on {@code ctx}.</p>
      */
-    @Override public Type visitFunctionCallStatement(@NotNull GravelParser.FunctionCallStatementContext ctx) { return visitChildren(ctx); }
+    public Type visitFunctionCallStatement(GravelParser.FunctionCallStatementContext ctx)
+    {
+        FunctionCallContext c = ctx.functionCall();
+        if(c.identifier().size() > 1)
+        {
+            String objName = c.identifier(0).getText();
+            String methodName = c.identifier(1).getText();
+            
+            ClassInstanceSymbol classInstanceSymbol = currentScope.getClassInstance(objName);
+            if(classInstanceSymbol == null)
+                return reportError(ctx, "Undeclared identifier " + objName);
+    
+            ClassScope classScope = classInstanceSymbol.getClassScope();
+            MethodSymbol methodSymbol = classScope.getMethod(methodName);
+            if(methodSymbol == null)
+                return reportError(ctx, "Undeclared method " + methodName);
+           
+            List<Type> signature = methodSymbol.getArguments();
+            if(c.expression().size() != signature.size() - 1)
+                return reportError(ctx, "Method arity mismatch");
+            for(int i = signature.size() - 1; i >= 0; i--)
+            {
+                Type ts = signature.get(i);
+                Type te = visit(c.expression(i));
+                if(!ts.equals(te))
+                    return reportError(ctx, "Argument mismatch");
+            }
+    
+            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+            codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
+            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+            codeGenerator.emitProgramString("sync");
+            if(methodSymbol.getReturnType().getMemorySize() > 0)
+                codeGenerator.emitProgramString("pop " + methodSymbol.getReturnType().getMemorySize());
+            return signature.get(0);
+        }
+        else
+        {
+            String methodName = c.identifier(0).getText();
+            
+            MethodSymbol methodSymbol = currentScope.getMethod(methodName);
+            if(methodSymbol == null)
+            {
+                methodSymbol = currentScope.getExternMethod(methodName);
+                if(methodSymbol == null)
+                    return reportError(ctx, "Undeclared method " + methodName);
+            }
+           
+            List<Type> signature = methodSymbol.getArguments();
+            if(c.expression().size() != signature.size())
+                return reportError(ctx, "Method arity mismatch");
+            for(int i = signature.size() - 1; i >= 0; i--)
+            {
+                Type ts = signature.get(i);
+                Type te = visit(c.expression(i));
+                if(!ts.equals(te))
+                    return reportError(ctx, "Argument mismatch");
+            }
+    
+            codeGenerator.emitProgramString("push word [$fp+4]");
+            codeGenerator.emitProgramString("call");
+            
+            if(methodSymbol.getReturnType().getMemorySize() > 0)
+                codeGenerator.emitProgramString("pop " + methodSymbol.getReturnType().getMemorySize());
+            return methodSymbol.getReturnType();
+        }
+    }
 
     /**
      * {@inheritDoc}

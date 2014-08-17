@@ -36,10 +36,15 @@ public class ClassScope implements Scope
         for(ClassVariableDeclarationContext c : ctx.classVariableDeclaration())
         {
             ClassVariableSymbol classVariableSymbol = new ClassVariableSymbol(c, classVarPos);
-            classVarPos += classVariableSymbol.getType().getSize();
+            classVarPos += classVariableSymbol.getType().getMemorySize();
             variableSymbols.add(classVariableSymbol);
         }
         className = ctx.identifier().getText();
+    }
+    
+    public MethodSymbol getExternMethod(String str)
+    {
+        return parent.getExternMethod(str);
     }
     
     public String getName()
@@ -52,7 +57,7 @@ public class ClassScope implements Scope
         for(MethodSymbol s : methodSymbols)
             if(str.equals(s.getName()))
                 return s;
-        return parent.getMethod(str);
+        return null;
     }
 
     public ClassInstanceSymbol getClassInstance(String str) 

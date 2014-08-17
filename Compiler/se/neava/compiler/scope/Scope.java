@@ -7,6 +7,7 @@ import se.neava.compiler.symbol.VariableSymbol;
 public interface Scope 
 {
     public MethodSymbol getMethod(String str);
+    public MethodSymbol getExternMethod(String str);
     public ClassInstanceSymbol getClassInstance(String str);
     public VariableSymbol getVariable(String str);
     public ClassScope getClassScope(String str);

@@ -12,7 +12,7 @@ type : baseType brackets? ;
 
 brackets : ('[' (NUM)? ']') ;
 
-baseType : 'bool' | 'int' | 'char' | 'long' | identifier | 'void' | functionPtr;
+baseType : 'bool' | 'int' | 'char' | 'long' | identifier | 'void' | functionPtr ;
 
 functionPtr : 'function' '(' ((type (',' type)*))? ')' '->' type ;
 
@@ -28,7 +28,7 @@ methodBody : methodVariableDefinition* statement* returnStatement;
 
 methodVariableDefinition : type identifier ';' ;
 
-statement : assignment | ifStatement | whileStatement | returnStatement | '{' statement* '}' | functionCallStatement | asyncStatement; 
+statement : assignment | ifStatement | whileStatement | returnStatement | '{' statement* '}' | functionCallStatement | asyncStatement ; 
 
 assignment : lvalue '=' expression ';' ;
 
@@ -36,7 +36,11 @@ ifStatement : 'if' '(' expression ')' statement ('else' statement)? ;
 
 whileStatement : 'while' '(' expression ')' statement ;
 
-asyncStatement : 'after' expression time 'before' expression time functionCallStatement | 'after' expression time functionCallStatement | 'before' expression time functionCallStatement ;
+asyncStatement : after expression time before expression time functionCall ';' | after expression time functionCall ';' | before expression time functionCall ';' ;
+
+after : 'after' ;
+
+before : 'before' ;
 
 time : 'sec' | 'msec' | 'usec' ;
 

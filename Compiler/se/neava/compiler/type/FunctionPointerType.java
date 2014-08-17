@@ -7,6 +7,7 @@ import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.GravelParser.FunctionPtrContext;
+import se.neava.compiler.symbol.MethodSymbol;
 
 public class FunctionPointerType extends Type implements Cloneable 
 {
@@ -20,19 +21,32 @@ public class FunctionPointerType extends Type implements Cloneable
             signature.add(Type.createType(ctx.type(i)));
     }
     
-    public FunctionPointerType(FunctionPointerType voidType) 
+    public FunctionPointerType(MethodSymbol methodSymbol)
     {
-        super((Type) voidType);
+        signature.add(methodSymbol.getReturnType());
+        
+        for(int i = 0; i < methodSymbol.getArguments().size(); i++)
+            signature.add(methodSymbol.getArguments().get(i));
+    }
+    
+    public FunctionPointerType(List<Type> signature)
+    {
+        this.signature = signature;
+    }
+    
+    public FunctionPointerType(FunctionPointerType type) 
+    {
+        super((Type) type);
     }
     
     public int getSize()
     {
-        return 2;
+        return 4;
     }
     
     public String getSizeStr()
     {
-        return "word";
+        return "dword";
     }
     
     public boolean equals(Object b)

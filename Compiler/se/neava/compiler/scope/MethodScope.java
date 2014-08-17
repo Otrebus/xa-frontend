@@ -33,7 +33,7 @@ public class MethodScope implements Scope
             Type type = Type.createType(ctx.type(i));
             String name = ctx.identifier(i).getText();
             localVariables.add(new ArgumentVariableSymbol(name, type, argumentVariableSize));
-            argumentVariableSize += type.getSize();
+            argumentVariableSize += type.getMemorySize();
         }
         methodSymbol = getMethod(name);
     }
@@ -46,6 +46,11 @@ public class MethodScope implements Scope
     public MethodSymbol getMethod(String str) 
     {
         return parent.getMethod(str);
+    }
+    
+    public MethodSymbol getExternMethod(String str)
+    {
+        return parent.getExternMethod(str);
     }
     
     public MethodSymbol getMethod()
@@ -71,7 +76,7 @@ public class MethodScope implements Scope
         for(VariableSymbol s : localVariables)
             if(s.getName().equals(str))
                 return false;
-        localVariableSize += type.getSize();
+        localVariableSize += type.getMemorySize();
         localVariables.add(new LocalVariableSymbol(str, type, localVariableSize));
         return true;
     }

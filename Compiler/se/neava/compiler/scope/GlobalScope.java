@@ -25,6 +25,14 @@ public class GlobalScope implements Scope
             classScopes.add(new ClassScope(gen, this, e));
     }
     
+    public MethodSymbol getExternMethod(String name)
+    {
+        for(MethodSymbol m : externMethods)
+            if(name.equals(m.getName()))
+                return m;
+        return null;
+    }
+    
     public void addExternMethod(MethodSymbol symbol)
     {
         externMethods.add(symbol);

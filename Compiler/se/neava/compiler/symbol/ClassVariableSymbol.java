@@ -42,17 +42,17 @@ public class ClassVariableSymbol extends VariableSymbol
     {
         // TODO Auto-generated method stub
         codeGenerator.emitProgramString("push word [$fp+4]");
-        codeGenerator.emitProgramString("push word " + (4 + position));
+        codeGenerator.emitProgramString("push word " + position);
         codeGenerator.emitProgramString("add word");
-        codeGenerator.emitProgramString("push word ");
+        codeGenerator.emitProgramString("push " + type.getSizeStr());
     }
 
     public void emitStore(CodeGenerator codeGenerator) 
     {
         codeGenerator.emitProgramString("push word [$fp+4]");
-        codeGenerator.emitProgramString("push word " + (4 + position));
+        codeGenerator.emitProgramString("push word " + position);
         codeGenerator.emitProgramString("add word");
-        codeGenerator.emitProgramString("pop word ");    
+        codeGenerator.emitProgramString("pop " + type.getSizeStr()); 
     }
 
     public void emitArrayLoad(CodeGenerator codeGenerator) 
@@ -108,7 +108,7 @@ public class ClassVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("push word " + type.getSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
-            codeGenerator.emitProgramString("push word [$fp + 4]"); // Current object ("this")
+            codeGenerator.emitProgramString("push word [$fp+4]"); // Current object ("this")
             codeGenerator.emitProgramString("push word " + position);
             codeGenerator.emitProgramString("add word"); // Array start address now on top
 

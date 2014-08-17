@@ -45,16 +45,16 @@ public class MethodSymbol extends Symbol
         this.name = name;
     }
     
-    public List<Type> getSignature()
+    public List<Type> getArguments()
     {
-        return signature;
+        return signature.subList(1, signature.size());
     }
     
     public int getTotalArgumentSize()
     {
         int size = 0;
         for(int i = 1; i < signature.size(); i++)
-            size += signature.get(i).getSize();
+            size += signature.get(i).getMemorySize();
         return size + 2;
     }
     
