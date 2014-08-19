@@ -74,6 +74,6 @@ public class LocalVariableSymbol extends VariableSymbol
 
     public void emitStore(CodeGenerator codeGenerator) 
     {
-        codeGenerator.emitProgramString("pop word " + type.getSizeStr() + " [$fp-" + position + "]");
+        codeGenerator.emitProgramString("pop " + type.getSizeStr() + " [$fp-" + position + "]");
     }
 }

@@ -80,9 +80,6 @@ public class Assembler {
             }
             lineNumber++;
         }
-        
-        System.out.println(p);
-        p.fixErrata();
         System.out.println("-------------");
         System.out.println(p);
         System.out.println(Program.bytesToString(p.getCode()));

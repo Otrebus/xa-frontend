@@ -14,6 +14,7 @@ import se.neava.compiler.scope.Scope;
 import se.neava.compiler.symbol.ClassInstanceSymbol;
 import se.neava.compiler.symbol.MethodSymbol;
 import se.neava.compiler.symbol.VariableSymbol;
+import se.neava.compiler.type.BoolType;
 import se.neava.compiler.type.FunctionPointerType;
 import se.neava.compiler.type.IntType;
 import se.neava.compiler.type.LongType;
@@ -193,14 +194,12 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return t;
     }
     
-    @Override public Type visitNumExp(GravelParser.NumExpContext ctx) 
+    public Type visitNumExp(GravelParser.NumExpContext ctx) 
     { 
         Type type = Type.createType(ctx.baseType());
         codeGenerator.emitProgramString("push " + type.getSizeStr() + " " + Integer.parseInt(ctx.NUM().getText()));
         return type; 
     }
-
-    @Override public Type visitLteExp(@NotNull GravelParser.LteExpContext ctx) { return visitChildren(ctx); }
 
     public Type visitIndirectionExp(GravelParser.IndirectionExpContext ctx) 
     {
@@ -221,42 +220,11 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return new FunctionPointerType(methodSymbol);
     }
 
-    @Override public Type visitTrueExp(@NotNull GravelParser.TrueExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitType(@NotNull GravelParser.TypeContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitLtExp(@NotNull GravelParser.LtExpContext ctx) { return visitChildren(ctx); }
-
-    public Type visitFunctionCall(@NotNull GravelParser.FunctionCallContext ctx)
+    public Type visitTrueExp(GravelParser.TrueExpContext ctx) 
     { 
-        return visitChildren(ctx); 
+        codeGenerator.emitProgramString("push byte 1");
+        return new BoolType();
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitMulExp(@NotNull GravelParser.MulExpContext ctx) { return visitChildren(ctx); }
-
-    @Override public Type visitSubExp(@NotNull GravelParser.SubExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitBaseType(@NotNull GravelParser.BaseTypeContext ctx) { return visitChildren(ctx); }
 
     public Type visitAsyncStatement(GravelParser.AsyncStatementContext ctx) 
     { 
@@ -385,42 +353,12 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         
         return methodSymbol.getReturnType();
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitFalseExp(@NotNull GravelParser.FalseExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
 
-    @Override public Type visitClassVariableDeclaration(@NotNull GravelParser.ClassVariableDeclarationContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitNumber(@NotNull GravelParser.NumberContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitDivExp(@NotNull GravelParser.DivExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitIfStatement(@NotNull GravelParser.IfStatementContext ctx) { return visitChildren(ctx); }
+    public Type visitFalseExp(GravelParser.FalseExpContext ctx) 
+    { 
+        codeGenerator.emitProgramString("push byte 0");
+        return new BoolType();
+    }
 
     public Type visitFunctionCallExp(GravelParser.FunctionCallExpContext ctx) 
     { 
@@ -526,45 +464,21 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return b;
     }
 
-    @Override public Type visitWhileStatement(@NotNull GravelParser.WhileStatementContext ctx) { return visitChildren(ctx); }
-    
-    public Type visitAddExp(GravelParser.AddExpContext ctx) 
-    { 
-        Type a = visit(ctx.expression(1));
-        Type b = visit(ctx.expression(0));
-        if(!a.equals(b))
-            return reportError(ctx, "Type match error in addition");
-        codeGenerator.emitProgramString("add " + a.getSizeStr());
-        return a;
+    public Type visitWhileStatement(GravelParser.WhileStatementContext ctx) 
+    {
+        String loopLabel = codeGenerator.makeLabel();
+        codeGenerator.emitProgramLabel(loopLabel);
+        Type a = visit(ctx.expression());
+        if(!(a instanceof BoolType))
+            return reportError(ctx, "Expression in if statement must be of type bool");
+        String endLabel = codeGenerator.makeLabel();
+        codeGenerator.emitProgramString("jez " + endLabel);
+        visit(ctx.statement());
+        codeGenerator.emitProgramString("jmp " + loopLabel);
+        codeGenerator.emitProgramLabel(endLabel);
+        return visitChildren(ctx); 
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
 
-    @Override public Type visitFunctionPtr(@NotNull GravelParser.FunctionPtrContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitString(@NotNull GravelParser.StringContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitLogOrExp(@NotNull GravelParser.LogOrExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
     public Type visitArrayLookupExp(@NotNull GravelParser.ArrayLookupExpContext ctx)
     {
         boolean wasMute = codeGenerator.mute;
@@ -577,19 +491,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         t.isArray = false;
         return t;
     }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitBrackets(@NotNull GravelParser.BracketsContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+
     public Type visitFunctionCallStatement(GravelParser.FunctionCallStatementContext ctx)
     {
         FunctionCallContext c = ctx.functionCall();
@@ -658,41 +560,137 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         }
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitGtExp(@NotNull GravelParser.GtExpContext ctx) { return visitChildren(ctx); }
+    public Type visitGtExp(GravelParser.GtExpContext ctx) 
+    {
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type mismatch");
+        codeGenerator.emitProgramString("sub " + a.getSizeStr());
+        codeGenerator.emitProgramString("sgz " + a.getSizeStr());
+        return new BoolType();
+    }
     
-    @Override public Type visitParExp(@NotNull GravelParser.ParExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
+    public Type visitParExp(GravelParser.ParExpContext ctx) 
+    { 
+        return visit(ctx.expression());
+    }
     
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitEqExp(@NotNull GravelParser.EqExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitLogAndExp(@NotNull GravelParser.LogAndExpContext ctx) { return visitChildren(ctx); }
-    /**
-     * {@inheritDoc}
-     *
-     * <p>The default implementation returns the result of calling
-     * {@link #visitChildren} on {@code ctx}.</p>
-     */
-    @Override public Type visitGteExp(@NotNull GravelParser.GteExpContext ctx) { return visitChildren(ctx); }
+    public Type visitEqExp(GravelParser.EqExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type mismatch");
+        codeGenerator.emitProgramString("sub " + a.getSizeStr());
+        codeGenerator.emitProgramString("sez " + a.getSizeStr());
+        return new BoolType();
+    }
+    
+    public Type visitLtExp(GravelParser.LtExpContext ctx)
+    { 
+        Type a = visit(ctx.expression(0));
+        Type b = visit(ctx.expression(1));
+        if(!a.equals(b))
+            return reportError(ctx, "Type mismatch");
+        codeGenerator.emitProgramString("sub " + a.getSizeStr());
+        codeGenerator.emitProgramString("sgz " + a.getSizeStr());
+        return new BoolType();
+    }
+    
+    public Type visitLteExp(GravelParser.LteExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(0));
+        Type b = visit(ctx.expression(1));
+        if(!a.equals(b))
+            return reportError(ctx, "Type mismatch");
+        codeGenerator.emitProgramString("sub " + a.getSizeStr());
+        codeGenerator.emitProgramString("sgez " + a.getSizeStr());
+        return new BoolType(); 
+    }
+
+    public Type visitLogAndExp(GravelParser.LogAndExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b) || !(a instanceof BoolType))
+            return reportError(ctx, "Both arguments to && must be of type bool");
+        codeGenerator.emitProgramString("and byte");
+        return new BoolType();
+    }
+
+    public Type visitGteExp(GravelParser.GteExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type mismatch");
+        codeGenerator.emitProgramString("sub " + a.getSizeStr());
+        codeGenerator.emitProgramString("sgez " + a.getSizeStr());
+        return new BoolType(); 
+    }
+    
+    public Type visitLogOrExp(GravelParser.LogOrExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b) || !(a instanceof BoolType))
+            return reportError(ctx, "Both arguments to && must be of type bool");
+        codeGenerator.emitProgramString("or byte");
+        return new BoolType();
+    }
+    
+    public Type visitDivExp(GravelParser.DivExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type match error in div");
+        codeGenerator.emitProgramString("div " + a.getSizeStr());
+        return a;
+    }
+
+    public Type visitAddExp(GravelParser.AddExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type match error in add");
+        codeGenerator.emitProgramString("add " + a.getSizeStr());
+        return a;
+    }
+    
+    public Type visitMulExp(GravelParser.MulExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type match error in mul");
+        codeGenerator.emitProgramString("mul " + a.getSizeStr());
+        return a;
+    }
+    
+    public Type visitSubExp(GravelParser.SubExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type match error in sub");
+        codeGenerator.emitProgramString("sub " + a.getSizeStr());
+        return a;
+    }
+    
+    public Type visitIfStatement(GravelParser.IfStatementContext ctx) 
+    { 
+        Type a = visit(ctx.expression());
+        if(!(a instanceof BoolType))
+            return reportError(ctx, "Expression in if statement must be of type bool");
+        String elseLabel = codeGenerator.makeLabel();
+        codeGenerator.emitProgramString("jez " + elseLabel);
+        visit(ctx.statement());
+        if(ctx.elseClause() != null)
+            visit(ctx.elseClause().statement());
+        codeGenerator.emitProgramLabel(elseLabel);
+        return visitChildren(ctx); 
+    }
 }

@@ -75,11 +75,11 @@ public class ArgumentVariableSymbol extends VariableSymbol
 
     public void emitLoad(CodeGenerator codeGenerator) 
     {
-        codeGenerator.emitProgramString("push word [$fp+" + (4 + position) + "]");
+        codeGenerator.emitProgramString("push " + type.getSizeStr() + " [$fp+" + (4 + position) + "]");
     }
 
     public void emitStore(CodeGenerator codeGenerator) 
     {
-        codeGenerator.emitProgramString("pop word [$fp+" + (4 + position) + "]");
+        codeGenerator.emitProgramString("pop " + type.getSizeStr() + " [$fp+" + (4 + position) + "]");
     }
 }

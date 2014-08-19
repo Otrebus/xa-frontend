@@ -10,6 +10,11 @@ public class BoolType extends Type implements Cloneable
         super((Type) type);
     }
     
+    public BoolType()
+    {
+        isArray = false;
+    }
+    
     public BoolType(boolean isArray)
     {
         this.isArray = isArray;

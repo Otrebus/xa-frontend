@@ -32,7 +32,9 @@ statement : assignment | ifStatement | whileStatement | returnStatement | '{' st
 
 assignment : lvalue '=' expression ';' ;
 
-ifStatement : 'if' '(' expression ')' statement ('else' statement)? ;
+ifStatement : 'if' '(' expression ')' statement elseClause? ;
+
+elseClause : ('else' statement) ;
 
 whileStatement : 'while' '(' expression ')' statement ;
 

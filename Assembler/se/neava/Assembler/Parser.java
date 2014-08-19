@@ -21,17 +21,18 @@ public class Parser
         parseMap.put("add", new AddParser());
         parseMap.put("sub", new SubParser());
         parseMap.put("mul", new MulParser());
-        parseMap.put("cmp", new CmpParser());
         parseMap.put("div", new DivParser());
         parseMap.put("mod", new ModParser());
         parseMap.put("and", new AndParser());
         parseMap.put("or", new OrParser());
         parseMap.put("xor", new XorParser());
-        parseMap.put("jgz", new JgzParser());
-        parseMap.put("jgez", new JgezParser());
+        parseMap.put("sgz", new SgzParser());
+        parseMap.put("sgez", new SgezParser());
+        parseMap.put("snez", new SnezParser());
+        parseMap.put("sez", new SezParser());
+        parseMap.put("jmp", new JmpParser());
         parseMap.put("jnez", new JnezParser());
         parseMap.put("jez", new JezParser());
-        parseMap.put("jmp", new JmpParser());
     }
     
     static public byte low8(int x)
@@ -123,55 +124,47 @@ public class Parser
         }
     }
     
-    private static class JgzParser implements InstructionParser
+    private static class SgzParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
         {
             Token tok = lexer.expect(Token.Type.SIZE);
             int size = getSize(tok.str);
-            tok = lexer.expect(Token.Type.IDENTIFIER);
-            String label = tok.str;
             lexer.expect(Token.Type.END);
-            return new Jgz(size, label);
+            return new Sgz(size);
         }
     }
     
-    private static class JgezParser implements InstructionParser
+    private static class SgezParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
         {
             Token tok = lexer.expect(Token.Type.SIZE);
             int size = getSize(tok.str);
-            tok = lexer.expect(Token.Type.IDENTIFIER);
-            String label = tok.str;
             lexer.expect(Token.Type.END);
-            return new Jgez(size, label);
+            return new Sgez(size);
         }
     }
     
-    private static class JezParser implements InstructionParser
+    private static class SezParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
         {
             Token tok = lexer.expect(Token.Type.SIZE);
             int size = getSize(tok.str);
-            tok = lexer.expect(Token.Type.IDENTIFIER);
-            String label = tok.str;
             lexer.expect(Token.Type.END);
-            return new Jez(size, label);
+            return new Sez(size);
         }
     }
     
-    private static class JnezParser implements InstructionParser
+    private static class SnezParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
         {
             Token tok = lexer.expect(Token.Type.SIZE);
             int size = getSize(tok.str);
-            tok = lexer.expect(Token.Type.IDENTIFIER);
-            String label = tok.str;
             lexer.expect(Token.Type.END);
-            return new Jnez(size, label);
+            return new Snez(size);
         }
     }
     
@@ -207,18 +200,7 @@ public class Parser
             return new Mul(size);
         }
     }
-    
-    private static class CmpParser implements InstructionParser
-    {
-        public Instruction parseInstruction(Lexer lexer) throws ParseException 
-        {
-            Token tok = lexer.expect(Token.Type.SIZE);
-            lexer.expect(Token.Type.END);
-            int size = getSize(tok.str);
-            return new Cmp(size);
-        }
-    }
-    
+        
     private static class DivParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -424,6 +406,28 @@ public class Parser
         {
             lexer.expect(Token.Type.END);
             return new Sync();
+        }
+    }
+    
+    private static class JezParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.IDENTIFIER);
+            String label = tok.str;
+            lexer.expect(Token.Type.END);
+            return new Jez(label);
+        }
+    }
+    
+    private static class JnezParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.IDENTIFIER);
+            String label = tok.str;
+            lexer.expect(Token.Type.END);
+            return new Jnez(label);
         }
     }
     

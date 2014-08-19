@@ -66,27 +66,26 @@ public interface Instruction extends Statement {
     public final static byte OP_XORWORD = 0x35;
     public final static byte OP_XORDWORD = 0x36;
     
-    public final static byte OP_JGZBYTE = 0x37;
-    public final static byte OP_JGZWORD = 0x38;
-    public final static byte OP_JGZDWORD = 0x39;
+    public final static byte OP_SGZBYTE = 0x37;
+    public final static byte OP_SGZWORD = 0x38;
+    public final static byte OP_SGZDWORD = 0x39;
 
-    public final static byte OP_JGEZBYTE = 0x3A;
-    public final static byte OP_JGEZWORD = 0x3B;
-    public final static byte OP_JGEZDWORD = 0x3C;
-    
-    public final static byte OP_JEZBYTE = 0x3D;
-    public final static byte OP_JEZWORD = 0x3E;
-    public final static byte OP_JEZDWORD = 0x3F;
-    
-    public final static byte OP_JNEZBYTE = 0x40;
-    public final static byte OP_JNEZWORD = 0x41;
-    public final static byte OP_JNEZDWORD = 0x42;
-    
+    public final static byte OP_SGEZBYTE = 0x3A;
+    public final static byte OP_SGEZWORD = 0x3B;
+    public final static byte OP_SGEZDWORD = 0x3C;
+               
+    public final static byte OP_SEZBYTE = 0x3D;
+    public final static byte OP_SEZWORD = 0x3E;
+    public final static byte OP_SEZDWORD = 0x3F;
+               
+    public final static byte OP_SNEZBYTE = 0x40;
+    public final static byte OP_SNEZWORD = 0x41;
+    public final static byte OP_SNEZDWORD = 0x42;
+        
     public final static byte OP_JMP = 0x43;
-    
-    public final static byte OP_CMPBYTE = 0x44;
-    public final static byte OP_CMPWORD = 0x45;
-    public final static byte OP_CMPDWORD = 0x46;
+
+    public final static byte OP_JEZ = 0x44;
+    public final static byte OP_JNEZ = 0x45;
     
     public byte[] getCode();
     public void fixAddress(int address);

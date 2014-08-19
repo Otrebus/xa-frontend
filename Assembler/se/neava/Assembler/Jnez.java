@@ -8,25 +8,11 @@ public class Jnez implements Instruction
     byte[] code;
     String label;
     
-    public Jnez(int size, String label)
+    public Jnez(String label)
     {
         this.label = label;
-        assert(size == 1 || size == 2 || size == 3);
-        if(size == 1)
-        {
-            code = new byte[] { Instruction.OP_JNEZBYTE, 0, 0 };
-            str = "jnez byte " + label;
-        }
-        else if(size == 2)
-        {
-            code = new byte[] { Instruction.OP_JNEZWORD, 0, 0 };
-            str = "jnez word " + label;
-        }
-        else
-        {
-            code = new byte[] { Instruction.OP_JNEZDWORD, 0, 0 };
-            str = "jnez dword " + label;
-        }
+        code = new byte[] { Instruction.OP_JNEZ, 0, 0 };
+        str = "jnez " + label;
     }
     
     public void addToProgram(Program p) throws ParseException 
