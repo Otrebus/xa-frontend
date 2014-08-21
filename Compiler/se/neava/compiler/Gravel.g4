@@ -1,5 +1,27 @@
 grammar Gravel ;
 
+
+@header {
+
+import java.util.LinkedList;
+import java.util.List;
+}
+
+@members {
+    private List<String> errors = new LinkedList<String>();
+    public void displayRecognitionError(String[] tokenNames,
+                                        RecognitionException e) {
+        String hdr = getErrorHeader(e);
+        //String msg = getErrorMessage(e, tokenNames);
+        errors.add(hdr);
+    }
+    public List<String> getErrors() {
+        return errors;
+    }
+    public void emitErrorMessage(String msg) {
+    }
+}
+
 program : externDeclaration* classInstanceDeclaration* classDefinition* ;
 
 externDeclaration : 'extern' type identifier '(' type (',' type)* ')' ';' ;

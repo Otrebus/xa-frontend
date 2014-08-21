@@ -35,6 +35,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return codeGenerator;
     }
     
+    
     CodeGeneratorVisitor()
     {
         codeGenerator = new CodeGenerator();
@@ -48,16 +49,13 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     public NoType reportError(ParserRuleContext ctx, String str)
     {
         hadError = true;
-        error.add(new String(ctx != null ? ("Line " + ctx.start.getLine() + ": ") : "" + str));
+        error.add(new String(ctx != null ? ("Line " + ctx.start.getLine() + ": " + str) : "" + str));
         return new NoType();
     }
     
-    public String dumpErrors()
+    public List<String> getErrors()
     {
-        String ret = "";
-        for(String s : error)
-            ret += s + "\n";
-        return ret;
+        return error;
     }
     
     boolean error()

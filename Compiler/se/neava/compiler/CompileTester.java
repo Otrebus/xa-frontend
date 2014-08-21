@@ -20,6 +20,7 @@ public class CompileTester {
     {
         String text = "";
         File file = new File("input.g");
+        System.out.println(file.getAbsolutePath());
         byte[] bytes;
         try {
             bytes = Files.readAllBytes(file.toPath());
@@ -30,15 +31,20 @@ public class CompileTester {
         }
         
         Compiler compiler = new Compiler();
-        String code = compiler.compile(text);
-        
-        if(compiler.error())
+        String code;
+        try 
         {
-            System.out.println("Compile error(s)!");
-            System.out.println(compiler.dumpErrors());
+            code = compiler.compile(text);
+        } 
+        catch (CompileException e1) 
+        {
+            // TODO Auto-generated catch block
+            System.out.println("Compile error!");
+            System.out.println(e1.what);
+            return;
         }
-        else
-            System.out.println(code);
+
+        System.out.println(code);
         Assembler asm = new Assembler();
         try {
             asm.assemble(code);
