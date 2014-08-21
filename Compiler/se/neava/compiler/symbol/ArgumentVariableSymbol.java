@@ -26,24 +26,24 @@ public class ArgumentVariableSymbol extends VariableSymbol
         if(type.getArrayLength() == 0)
         {
             // First, we assume that the index of the array is on top of the stack
-            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
             codeGenerator.emitProgramString("push word [$fp+" + (4 + position) + "]"); // Array address now on top
             codeGenerator.emitProgramString("add word"); // Add with offset
-            codeGenerator.emitProgramString("push " + type.getSizeStr()); // Data element now on top
+            codeGenerator.emitProgramString("push " + type.getElementSizeStr()); // Data element now on top
         }
         else
         {
             // First, we assume that the index of the array is on top of the stack
-            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
             codeGenerator.emitProgramString("push word [$fp+" + (4 + position) + "]"); // Array address now on top
             codeGenerator.emitProgramString("add word"); // Add with offset
 
             codeGenerator.emitProgramString("add word"); // Add with offset
-            codeGenerator.emitProgramString("push " + type.getSizeStr()); // Data element now on top
+            codeGenerator.emitProgramString("push " + type.getElementSizeStr()); // Data element now on top
         }
     }
 
@@ -52,24 +52,24 @@ public class ArgumentVariableSymbol extends VariableSymbol
         if(type.getArrayLength() == 0)
         {
             // First, we assume that the index of the array is on top of the stack
-            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
             codeGenerator.emitProgramString("push word [$fp-" + position + "]"); // Array address now on top
             codeGenerator.emitProgramString("add word"); // Add with offset
-            codeGenerator.emitProgramString("pop " + type.getSizeStr()); // Pop to element
+            codeGenerator.emitProgramString("pop " + type.getElementSizeStr()); // Pop to element
         }
         else
         {
             // First, we assume that the index of the array is on top of the stack
-            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
             codeGenerator.emitProgramString("push word [$fp-" + position + "]"); // Array address now on top
             codeGenerator.emitProgramString("add word"); // Add with offset
 
             codeGenerator.emitProgramString("add word"); // Add with offset
-            codeGenerator.emitProgramString("pop " + type.getSizeStr()); // Pop to element
+            codeGenerator.emitProgramString("pop " + type.getElementSizeStr()); // Pop to element
         }
     }
 

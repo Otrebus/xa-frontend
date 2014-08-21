@@ -8,21 +8,13 @@ public class LongType extends Type implements Cloneable
     public LongType(LongType voidType) 
     {
         super((Type) voidType);
+        size = 4;
     }
     
     public LongType(boolean isArray)
     {
         this.isArray = isArray;
-    }
-    
-    public int getSize()
-    {
-        return 4;
-    }
-    
-    public String getSizeStr()
-    {
-        return "dword";
+        size = 4;
     }
     
     public boolean equals(Object b)
@@ -74,6 +66,15 @@ public class LongType extends Type implements Cloneable
         cgv.getCodeGenerator().emitProgramString("add word");
         cgv.getCodeGenerator().emitProgramString("push word");
         return this;
+    }
+    
+    public boolean isAssignableFrom(Type type)
+    {
+        if(!(type instanceof LongType))
+            return false;
+        if(isArray && (arrayLength != 0 || !type.isArray))
+            return false;
+        return true;            
     }
     
     public Type clone()

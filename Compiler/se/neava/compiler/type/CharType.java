@@ -9,20 +9,13 @@ public class CharType extends Type implements Cloneable {
     public CharType(CharType voidType) 
     {
         super((Type) voidType);
+        size = 1;
     }
     
-    public CharType(boolean isArray) {
+    public CharType(boolean isArray) 
+    {
         this.isArray = isArray;
-    }
-
-    public int getSize()
-    {
-        return 1;
-    }
-    
-    public String getSizeStr()
-    {
-        return "byte";
+        size = 1;
     }
     
     public boolean equals(Object b)
@@ -73,6 +66,15 @@ public class CharType extends Type implements Cloneable {
         cgv.getCodeGenerator().emitProgramString("add word");
         cgv.getCodeGenerator().emitProgramString("push byte");
         return this;
+    }
+    
+    public boolean isAssignableFrom(Type type)
+    {
+        if(!(type instanceof CharType))
+            return false;
+        if(isArray && (arrayLength != 0 || !type.isArray))
+            return false;
+        return true;            
     }
     
     public Type clone()

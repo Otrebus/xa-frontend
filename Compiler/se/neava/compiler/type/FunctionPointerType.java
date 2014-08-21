@@ -19,6 +19,7 @@ public class FunctionPointerType extends Type implements Cloneable
         
         for(int i = 0; i < ctx.type().size() - 1; i++)
             signature.add(Type.createType(ctx.type(i)));
+        size = 4;
     }
     
     public FunctionPointerType(MethodSymbol methodSymbol)
@@ -27,26 +28,19 @@ public class FunctionPointerType extends Type implements Cloneable
         
         for(int i = 0; i < methodSymbol.getArguments().size(); i++)
             signature.add(methodSymbol.getArguments().get(i));
+        size = 4;
     }
     
     public FunctionPointerType(List<Type> signature)
     {
         this.signature = signature;
+        size = 4;
     }
     
     public FunctionPointerType(FunctionPointerType type) 
     {
         super((Type) type);
-    }
-    
-    public int getSize()
-    {
-        return 4;
-    }
-    
-    public String getSizeStr()
-    {
-        return "dword";
+        size = 4;
     }
     
     public boolean equals(Object b)
@@ -63,37 +57,18 @@ public class FunctionPointerType extends Type implements Cloneable
     }
 
     @Override
-    public
-    String popTo(int fpOffset) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public
-    String popTo(String label) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public
-    String pushFrom(int fpOffset) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
-    public
-    String pushFrom(String label) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public Type pushFrom(CodeGeneratorVisitor codeGen, ArrayLookupExpContext ctx) {
         // TODO Auto-generated method stub
         return this;
+    }
+    
+    public boolean isAssignableFrom(Type type)
+    {
+        if(!(type instanceof FunctionPointerType))
+            return false;
+        if(isArray && (arrayLength != 0 || !type.isArray))
+            return false;
+        return true;            
     }
     
     public Type clone()

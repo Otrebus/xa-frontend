@@ -427,35 +427,28 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         String varName = ctx.lvalue().identifier().getText();
         VariableSymbol var = currentScope.getVariable(varName);
         boolean arrayAssignment = (ctx.lvalue().expression() != null);
-        Type b = var.getType();
+        Type b = var.getType().clone();
+        
         if(arrayAssignment)
         {
+            if(!b.isArray())
+                return reportError(ctx, "Array assignment on a non-array");
+            b.isArray = false;
             Type a = visit(ctx.expression());
             Type indexType = visit(ctx.lvalue().expression());
             if(!(indexType instanceof IntType))
-            {
-                reportError(ctx, "Index must be of type int");
-                return new NoType();
-            }
+                return reportError(ctx, "Index must be of type int");
+
             
-            b.isArray = false;
-            if(!b.equals(a))
-            {
-                reportError(ctx, "Type mismatch");
-                b.isArray = true;
-                return new NoType();
-            }
-            b.isArray = true;
+            if(!b.isAssignableFrom(a))
+                return reportError(ctx, "Type mismatch");
             var.emitArrayStore(codeGenerator);
         }
         else
         {
             Type a = visit(ctx.expression());
-            if(!b.equals(a))
-            {
-                reportError(ctx, "Type mismatch");
-                return new NoType();
-            }
+            if(!b.isAssignableFrom(a))
+                return reportError(ctx, "Type mismatch");
             var.emitStore(codeGenerator);
 
         }

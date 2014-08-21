@@ -8,21 +8,13 @@ public class IntType extends Type implements Cloneable
     public IntType(IntType voidType) 
     {
         super((Type) voidType);
+        size = 2;
     }
     
     public IntType(boolean isArray)
     {
         this.isArray = isArray;
-    }
-    
-    public int getSize()
-    {
-        return 2;
-    }
-    
-    public String getSizeStr()
-    {
-        return "word";
+        size = 2;
     }
     
     public boolean equals(Object b)
@@ -74,6 +66,15 @@ public class IntType extends Type implements Cloneable
         cgv.getCodeGenerator().emitProgramString("add word");
         cgv.getCodeGenerator().emitProgramString("push word");
         return this;
+    }
+    
+    public boolean isAssignableFrom(Type type)
+    {
+        if(!(type instanceof IntType))
+            return false;
+        if(isArray && (arrayLength != 0 || !type.isArray))
+            return false;
+        return true;            
     }
     
     public Type clone()

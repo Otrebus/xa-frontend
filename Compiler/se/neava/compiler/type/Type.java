@@ -14,8 +14,42 @@ public abstract class Type implements Cloneable
     public static final int FUNCTIONPTR = 4;
     public static final int VOID = 5;
     public static final int CLASS = 6;
+
     public boolean isArray;
     int arrayLength;
+    int size;
+    
+    public int getSize()
+    {
+        if(isArray)
+            return 2;
+        return size;
+    }
+    
+    public String getSizeStr()
+    {
+        if(isArray)
+            return "word";
+        return getElementSizeStr();
+    }
+    
+    public int getElementSize()
+    {
+        return size;
+    }
+    
+    public String getElementSizeStr()
+    {
+        if(size == 1)
+            return "byte";
+        else if(size == 2)
+            return "word";
+        else if(size == 4)
+            return "dword";
+        else
+            return "bullshit"; // TODO: :p
+    }
+
     
     public Type()
     {}
@@ -71,22 +105,13 @@ public abstract class Type implements Cloneable
     public int getMemorySize()
     {
         if(arrayLength > 0)
-            return arrayLength*getSize();
+            return arrayLength*getElementSize();
         else if(isArray)
             return 2;
         return getSize();
     }
     
-    abstract public int getSize();
-    abstract public String getSizeStr();
-    
-    public abstract String popTo(int fpOffset);
-    public abstract String popTo(String label);
-    
-    public abstract String pushFrom(int fpOffset);
-    public abstract String pushFrom(String label);
-    
     public abstract Type pushFrom(CodeGeneratorVisitor codeGen, ArrayLookupExpContext ctx);
-    
+    public abstract boolean isAssignableFrom(Type type);
     public abstract Type clone();
 }

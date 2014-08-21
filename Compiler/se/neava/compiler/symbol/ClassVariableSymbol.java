@@ -60,7 +60,7 @@ public class ClassVariableSymbol extends VariableSymbol
         if(type.getArrayLength() == 0)
         {
             // First, we assume that the index of the array is on top of the stack
-            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
             codeGenerator.emitProgramString("push word [$fp+4]"); // Current object ("this")
@@ -68,12 +68,12 @@ public class ClassVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("add word"); // Address of array variable now on top
             codeGenerator.emitProgramString("push word"); // Array address now on top
             codeGenerator.emitProgramString("add word"); // Add with offset
-            codeGenerator.emitProgramString("push " + type.getSizeStr()); // Data element now on top
+            codeGenerator.emitProgramString("push " + type.getElementSizeStr()); // Data element now on top
         }
         else
         {
             // First, we assume that the index of the array is on top of the stack
-            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
             codeGenerator.emitProgramString("push word [$fp+4]"); // Current object ("this")
@@ -81,7 +81,7 @@ public class ClassVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("add word"); // Array start address now on top
 
             codeGenerator.emitProgramString("add word"); // Add with offset
-            codeGenerator.emitProgramString("push " + type.getSizeStr()); // Data element now on top
+            codeGenerator.emitProgramString("push " + type.getElementSizeStr()); // Data element now on top
         }
     }
 
@@ -91,7 +91,7 @@ public class ClassVariableSymbol extends VariableSymbol
         {
             // First, we assume that the index of the array is on top of the stack, and the data to be stored
             // is below that
-            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
             codeGenerator.emitProgramString("push word [$fp+4]"); // Current object ("this")
@@ -99,13 +99,13 @@ public class ClassVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("add word"); // Address of array variable now on top
             codeGenerator.emitProgramString("push word"); // Array address now on top
             codeGenerator.emitProgramString("add word"); // Add with offset
-            codeGenerator.emitProgramString("pop " + type.getSizeStr()); // Pop to element
+            codeGenerator.emitProgramString("pop " + type.getElementSizeStr()); // Pop to element
         }
         else
         {
             // First, we assume that the index of the array is on top of the stack, and the data to be stored
             // is below that
-            codeGenerator.emitProgramString("push word " + type.getSize());
+            codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
             codeGenerator.emitProgramString("push word [$fp+4]"); // Current object ("this")
@@ -113,7 +113,7 @@ public class ClassVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("add word"); // Array start address now on top
 
             codeGenerator.emitProgramString("add word"); // Add with offset
-            codeGenerator.emitProgramString("pop " + type.getSizeStr()); // Pop to element
+            codeGenerator.emitProgramString("pop " + type.getElementSizeStr()); // Pop to element
         }
     }
 }
