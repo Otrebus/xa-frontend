@@ -176,10 +176,9 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     {
         Type t = ctx.expression() != null ? visit(ctx.expression()) : new VoidType();
         if(!t.equals(((MethodScope) currentScope).getMethod().getReturnType()))
-        {
-            reportError(ctx, "Return type mismatch.");
-            return new NoType();
-        }
+            return reportError(ctx, "Return type mismatch.");
+        if(t.isPointer())
+            return reportError(ctx, "May not return pointers");
         MethodScope methodScope = (MethodScope) currentScope;
         MethodSymbol sym = methodScope.getMethod(methodScope.getName());
         int retSize = sym.getReturnType().getMemorySize();
@@ -438,8 +437,6 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             Type indexType = visit(ctx.lvalue().expression());
             if(!(indexType instanceof IntType))
                 return reportError(ctx, "Index must be of type int");
-
-            
             if(!b.isAssignableFrom(a))
                 return reportError(ctx, "Type mismatch");
             var.emitArrayStore(codeGenerator);

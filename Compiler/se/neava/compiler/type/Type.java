@@ -102,6 +102,32 @@ public abstract class Type implements Cloneable
         return isArray;
     }
     
+    public boolean isPointer()
+    {
+        return isArray && arrayLength == 0;
+    }
+    
+    public Type pushFrom(CodeGeneratorVisitor cgv, ArrayLookupExpContext ctx)
+    {
+        Type b = cgv.visit(ctx.expression(1));
+        if(!(b instanceof IntType))
+        {
+            cgv.reportError(ctx, "Array index must be of type int");
+            return new NoType();
+        }
+        cgv.getCodeGenerator().emitProgramString("push word " + getElementSize());
+        cgv.getCodeGenerator().emitProgramString("mul word");
+        Type a = cgv.visit(ctx.expression(0));
+        if(!a.isArray())
+        {
+            cgv.reportError(ctx, "Array lookup on non-array type");
+            return new NoType();
+        }
+        cgv.getCodeGenerator().emitProgramString("add word");
+        cgv.getCodeGenerator().emitProgramString("push " + getElementSizeStr());
+        return this;
+    }
+    
     public int getMemorySize()
     {
         if(arrayLength > 0)
@@ -111,7 +137,6 @@ public abstract class Type implements Cloneable
         return getSize();
     }
     
-    public abstract Type pushFrom(CodeGeneratorVisitor codeGen, ArrayLookupExpContext ctx);
     public abstract boolean isAssignableFrom(Type type);
     public abstract Type clone();
 }
