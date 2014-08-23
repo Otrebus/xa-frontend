@@ -1,6 +1,9 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
 
 import java.text.ParseException;
+
+import se.neava.Assembler.Parser;
+import se.neava.Assembler.Program;
 
 public class Ret implements Instruction 
 {

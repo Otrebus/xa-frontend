@@ -1,28 +1,31 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
 
 import java.text.ParseException;
 
-public class Mul implements Instruction {
+import se.neava.Assembler.Program;
+
+public class Sez implements Instruction 
+{
     String str;
     byte[] code;
     
-    public Mul(int size)
+    public Sez(int size)
     {
         assert(size == 1 || size == 2 || size == 3);
         if(size == 1)
         {
-            code = new byte[] { Instruction.OP_MULBYTE };
-            str = "mul byte";
+            code = new byte[] { Instruction.OP_SEZBYTE };
+            str = "jez byte";
         }
         else if(size == 2)
         {
-            code = new byte[] { Instruction.OP_MULWORD };
-            str = "mul word";
+            code = new byte[] { Instruction.OP_SEZWORD };
+            str = "jez word";
         }
         else
         {
-            code = new byte[] { Instruction.OP_MULDWORD };
-            str = "mul dword";
+            code = new byte[] { Instruction.OP_SEZDWORD };
+            str = "jez dword";
         }
     }
     

@@ -33,8 +33,9 @@ public class MethodSymbol extends Symbol
     {
         List<Type> types = new LinkedList<Type>();
         String methodName = ctx.identifier(0).getText();
-        for(TypeContext c : ctx.type())
-            types.add(Type.createType(c));
+        if(ctx.type() != null)
+            for(TypeContext c : ctx.type())
+                types.add(Type.createType(c));
         signature = types;
         name = methodName;
     }

@@ -1,18 +1,20 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
 
 import java.text.ParseException;
 
-public class Jnez implements Instruction 
-{
-    String str;
+import se.neava.Assembler.Parser;
+import se.neava.Assembler.Program;
+
+public class Call implements Instruction {
+    String label = "";
     byte[] code;
-    String label;
+    String str;
     
-    public Jnez(String label)
+    public Call(String label)
     {
         this.label = label;
-        code = new byte[] { Instruction.OP_JNEZ, 0, 0 };
-        str = "jnez " + label;
+        code = new byte[] { Instruction.OP_CALL, 0, 0 };
+        str = "call " + label;
     }
     
     public void addToProgram(Program p) throws ParseException 

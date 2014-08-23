@@ -1,29 +1,30 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
 
 import java.text.ParseException;
 
-public class Snez implements Instruction 
-{
+import se.neava.Assembler.Program;
+
+public class Mul implements Instruction {
     String str;
     byte[] code;
     
-    public Snez(int size)
+    public Mul(int size)
     {
         assert(size == 1 || size == 2 || size == 3);
         if(size == 1)
         {
-            code = new byte[] { Instruction.OP_SNEZBYTE };
-            str = "jnez byte";
+            code = new byte[] { Instruction.OP_MULBYTE };
+            str = "mul byte";
         }
         else if(size == 2)
         {
-            code = new byte[] { Instruction.OP_SNEZWORD };
-            str = "jnez word";
+            code = new byte[] { Instruction.OP_MULWORD };
+            str = "mul word";
         }
         else
         {
-            code = new byte[] { Instruction.OP_SNEZDWORD };
-            str = "jnez dword";
+            code = new byte[] { Instruction.OP_MULDWORD };
+            str = "mul dword";
         }
     }
     

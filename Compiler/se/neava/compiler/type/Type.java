@@ -74,11 +74,11 @@ public abstract class Type implements Cloneable
             {
                 type.arrayLength = Integer.parseInt(ctx.brackets().NUM().getText());
             }
-        }   
+        }
         return type;
     }
     
-    public static Type createType(BaseTypeContext ctx)
+    public static Type createType(BaseTypeContext ctx) // TODO: handle identifier types correctly
     {
         if(ctx.functionPtr() != null)
             return new FunctionPointerType(ctx.functionPtr());

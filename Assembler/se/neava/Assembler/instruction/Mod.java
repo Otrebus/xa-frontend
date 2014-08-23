@@ -1,28 +1,30 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
 
 import java.text.ParseException;
 
-public class Or implements Instruction {
+import se.neava.Assembler.Program;
+
+public class Mod implements Instruction {
     String str;
     byte[] code;
     
-    public Or(int size)
+    public Mod(int size)
     {
         assert(size == 1 || size == 2 || size == 3);
         if(size == 1)
         {
-            code = new byte[] { Instruction.OP_ORBYTE };
-            str = "or byte";
+            code = new byte[] { Instruction.OP_MODBYTE };
+            str = "mod byte";
         }
         else if(size == 2)
         {
-            code = new byte[] { Instruction.OP_ORWORD };
-            str = "or word";
+            code = new byte[] { Instruction.OP_MODWORD };
+            str = "mod word";
         }
         else
         {
-            code = new byte[] { Instruction.OP_ORDWORD };
-            str = "or dword";
+            code = new byte[] { Instruction.OP_MODDWORD };
+            str = "mod dword";
         }
     }
     

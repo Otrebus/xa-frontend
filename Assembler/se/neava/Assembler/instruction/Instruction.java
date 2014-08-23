@@ -1,4 +1,4 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
 
 import java.text.ParseException;
 
@@ -86,6 +86,30 @@ public interface Instruction extends Statement {
 
     public final static byte OP_JEZ = 0x44;
     public final static byte OP_JNEZ = 0x45;
+    
+    public final static byte OP_SLLBYTE = 0x46;
+    public final static byte OP_SLLWORD = 0x47;
+    public final static byte OP_SLLDWORD = 0x48;
+
+    public final static byte OP_SLLVBYTE = 0x49;
+    public final static byte OP_SLLVWORD = 0x4A;
+    public final static byte OP_SLLVDWORD = 0x4B;    
+
+    public final static byte OP_SRLBYTE = 0x4C;
+    public final static byte OP_SRLWORD = 0x4D;
+    public final static byte OP_SRLDWORD = 0x4E;
+    
+    public final static byte OP_SRLVBYTE = 0x5F;
+    public final static byte OP_SRLVWORD = 0x50;
+    public final static byte OP_SRLVDWORD = 0x51;
+    
+    public final static byte OP_SRABYTE = 0x52;
+    public final static byte OP_SRAWORD = 0x53;
+    public final static byte OP_SRADWORD = 0x54;    
+
+    public final static byte OP_SRAVBYTE = 0x55;
+    public final static byte OP_SRAVWORD = 0x56;
+    public final static byte OP_SRAVDWORD = 0x57;
     
     public byte[] getCode();
     public void fixAddress(int address);

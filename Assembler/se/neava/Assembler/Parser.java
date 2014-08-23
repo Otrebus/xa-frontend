@@ -3,6 +3,7 @@ package se.neava.Assembler;
 import java.text.ParseException;
 import java.util.Map;
 import java.util.TreeMap;
+import se.neava.Assembler.instruction.*;
 
 public class Parser 
 {
@@ -33,6 +34,12 @@ public class Parser
         parseMap.put("jmp", new JmpParser());
         parseMap.put("jnez", new JnezParser());
         parseMap.put("jez", new JezParser());
+        parseMap.put("sll", new SllParser());
+        parseMap.put("srl", new SrlParser());
+        parseMap.put("sra", new SraParser());
+        parseMap.put("sllv", new SllvParser());
+        parseMap.put("srlv", new SrlvParser());
+        parseMap.put("srav", new SravParser());
     }
     
     static public byte low8(int x)
@@ -111,6 +118,78 @@ public class Parser
     private interface InstructionParser
     {
         Instruction parseInstruction(Lexer lexer) throws ParseException;
+    }
+    
+    private static class SllParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            int size = getSize(tok.str);
+            tok = lexer.expect(Token.Type.NUMBER);
+            int imm = parseNum(tok.str);
+            lexer.expect(Token.Type.END);
+            return new Sll(size, imm); 
+        }
+    }
+    
+    private static class SrlParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            int size = getSize(tok.str);
+            tok = lexer.expect(Token.Type.NUMBER);
+            int imm = parseNum(tok.str);
+            lexer.expect(Token.Type.END);
+            return new Srl(size, imm); 
+        }
+    }
+    
+    private static class SraParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            int size = getSize(tok.str);
+            tok = lexer.expect(Token.Type.NUMBER);
+            int imm = parseNum(tok.str);
+            lexer.expect(Token.Type.END);
+            return new Sra(size, imm); 
+        }
+    }
+    
+    private static class SllvParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            int size = getSize(tok.str);
+            lexer.expect(Token.Type.END);
+            return new Sllv(size); 
+        }
+    }
+    
+    private static class SrlvParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            int size = getSize(tok.str);
+            lexer.expect(Token.Type.END);
+            return new Srlv(size); 
+        }
+    }
+    
+    private static class SravParser implements InstructionParser
+    {
+        public Instruction parseInstruction(Lexer lexer) throws ParseException 
+        {
+            Token tok = lexer.expect(Token.Type.SIZE);
+            int size = getSize(tok.str);
+            lexer.expect(Token.Type.END);
+            return new Srav(size); 
+        }
     }
     
     private static class JmpParser implements InstructionParser

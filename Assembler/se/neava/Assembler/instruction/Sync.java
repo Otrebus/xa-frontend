@@ -1,13 +1,15 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
 
 import java.text.ParseException;
 
-public class Async implements Instruction {
+import se.neava.Assembler.Program;
+
+public class Sync implements Instruction {
     byte[] code;
     
     public void addToProgram(Program p) throws ParseException 
     {
-        code = new byte[] { OP_ASYNC };
+        code = new byte[] { OP_SYNC };
         p.addStatement(this);
     }
 
@@ -22,6 +24,6 @@ public class Async implements Instruction {
     
     public String toString()
     {
-        return "async";
+        return "sync";
     }
 }

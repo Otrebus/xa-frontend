@@ -25,9 +25,32 @@ public class Compiler
     {
         return parsingError;
     }
+    
+    private void checkGrammar(String code) throws CompileException
+    {
+        GravelLexer lexer = new GravelLexer(new ANTLRInputStream(code));
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        GravelBaseVisitor<Void> parseVisitor = new GravelBaseVisitor<Void>();
+        visitor = new CodeGeneratorVisitor();
+        GravelParser parser = new GravelParser(tokens);
+        GravelErrorListener errorListener = new GravelErrorListener();
+        
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(errorListener);
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+        
+        parseVisitor.visit(parser.program());
+        errors = errorListener.getErrors();
+        
+        if(!errors.isEmpty())
+            throw new CompileException(errors.get(0));
+    }
         
     public String compile(String code) throws CompileException
     {
+        checkGrammar(code);
+        
         GravelLexer lexer = new GravelLexer(new ANTLRInputStream(code));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         visitor = new CodeGeneratorVisitor();
@@ -40,12 +63,8 @@ public class Compiler
         parser.addErrorListener(errorListener);
         
         visitor.visit(parser.program());
-        visitor.addEntryPoint();
-        errors = errorListener.getErrors();
-        
-        if(!errors.isEmpty())
-            throw new CompileException(errors.get(0));
-        else if(visitor.error())
+ 
+        if(visitor.error())
             throw new CompileException(visitor.getErrors().get(0));
         return visitor.getCode();
     }

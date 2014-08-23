@@ -1,4 +1,7 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
+
+import se.neava.Assembler.Parser;
+import se.neava.Assembler.Program;
 
 public class Push implements Instruction 
 {

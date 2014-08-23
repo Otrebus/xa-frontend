@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import se.neava.Assembler.instruction.Instruction;
+
 public class Program 
 {
     private static final int headerSize = 8;
@@ -26,7 +28,7 @@ public class Program
         labels.put(label, pos);
     }
     
-    int getAddress(String label)
+    public int getAddress(String label)
     {
         if(labels.containsKey(label))
             return labels.get(label);

@@ -1,29 +1,31 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
 
 import java.text.ParseException;
 
-public class Sez implements Instruction 
+import se.neava.Assembler.Program;
+
+public class Sgz implements Instruction 
 {
     String str;
     byte[] code;
     
-    public Sez(int size)
+    public Sgz(int size)
     {
         assert(size == 1 || size == 2 || size == 3);
         if(size == 1)
         {
-            code = new byte[] { Instruction.OP_SEZBYTE };
-            str = "jez byte";
+            code = new byte[] { Instruction.OP_SGZBYTE };
+            str = "jgz byte";
         }
         else if(size == 2)
         {
-            code = new byte[] { Instruction.OP_SEZWORD };
-            str = "jez word";
+            code = new byte[] { Instruction.OP_SGZWORD };
+            str = "jgz word";
         }
         else
         {
-            code = new byte[] { Instruction.OP_SEZDWORD };
-            str = "jez dword";
+            code = new byte[] { Instruction.OP_SGZDWORD };
+            str = "jgz dword";
         }
     }
     

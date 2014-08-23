@@ -1,28 +1,30 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
 
 import java.text.ParseException;
 
-public class Add implements Instruction {
+import se.neava.Assembler.Program;
+
+public class Div implements Instruction {
     String str;
     byte[] code;
     
-    public Add(int size)
+    public Div(int size)
     {
         assert(size == 1 || size == 2 || size == 3);
         if(size == 1)
         {
-            code = new byte[] { Instruction.OP_ADDBYTE };
-            str = "add byte";
+            code = new byte[] { Instruction.OP_DIVBYTE };
+            str = "div byte";
         }
         else if(size == 2)
         {
-            code = new byte[] { Instruction.OP_ADDWORD };
-            str = "add word";
+            code = new byte[] { Instruction.OP_DIVWORD };
+            str = "div word";
         }
         else
         {
-            code = new byte[] { Instruction.OP_ADDDWORD };
-            str = "add dword";
+            code = new byte[] { Instruction.OP_DIVDWORD };
+            str = "div dword";
         }
     }
     

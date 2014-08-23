@@ -28,8 +28,6 @@ externDeclaration : 'extern' type identifier '(' type (',' type)* ')' ';' ;
 
 identifier : TEXTNUM ;
 
-TEXTNUM : (TEXT)+(NUM | TEXT)* ;
-
 type : baseType brackets? ;
 
 brackets : ('[' (NUM)? ']') ;
@@ -97,6 +95,8 @@ functionCallStatement : functionCall ';' ;
 
 returnStatement : 'return' expression? ';' ;
 
+TEXTNUM : (TEXT)+(NUM | TEXT)* ;
+
 number : NUM ;
 
 string : STRING ;
@@ -107,4 +107,8 @@ NUM : ('0'..'9')+ ;
 
 STRING : '"' ( ~('\n'|'\r') )*? '"';
 
-WS    :    (' '|'\t'|'\f'|'\n'|'\r')+{ skip(); };
+WS    :    (' '|'\t'|'\f'|'\n'|'\r')+ -> skip ;
+
+MULTICOMMENT : '/*' .*? '*/' -> skip ;
+
+SINGLECOMMENT : '//' ~('\r' | '\n')* -> skip ;

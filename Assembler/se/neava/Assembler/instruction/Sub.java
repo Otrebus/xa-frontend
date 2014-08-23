@@ -1,28 +1,30 @@
-package se.neava.Assembler;
+package se.neava.Assembler.instruction;
 
 import java.text.ParseException;
 
-public class Mod implements Instruction {
+import se.neava.Assembler.Program;
+
+public class Sub implements Instruction {
     String str;
     byte[] code;
     
-    public Mod(int size)
+    public Sub(int size)
     {
         assert(size == 1 || size == 2 || size == 3);
         if(size == 1)
         {
-            code = new byte[] { Instruction.OP_MODBYTE };
-            str = "mod byte";
+            code = new byte[] { Instruction.OP_SUBBYTE };
+            str = "sub byte";
         }
         else if(size == 2)
         {
-            code = new byte[] { Instruction.OP_MODWORD };
-            str = "mod word";
+            code = new byte[] { Instruction.OP_SUBWORD };
+            str = "sub word";
         }
         else
         {
-            code = new byte[] { Instruction.OP_MODDWORD };
-            str = "mod dword";
+            code = new byte[] { Instruction.OP_SUBDWORD };
+            str = "sub dword";
         }
     }
     
