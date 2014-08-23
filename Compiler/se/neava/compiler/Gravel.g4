@@ -73,6 +73,7 @@ expression :
     'true' #trueExp |
     'false' #falseExp |
     '(' baseType ')' NUM #numExp |
+    '(' baseType ')' expression #castExp |
     expression ('[' expression ']') #arrayLookupExp
     | identifier '.' identifier #indirectionExp
     | functionCall #functionCallExp

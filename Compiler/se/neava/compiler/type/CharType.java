@@ -1,5 +1,6 @@
 package se.neava.compiler.type;
 
+import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 
@@ -32,6 +33,25 @@ public class CharType extends Type implements Cloneable {
         if(isArray && (arrayLength != 0 || !type.isArray))
             return false;
         return true;            
+    }
+    
+    public boolean castTo(CodeGenerator gen, Type type)
+    {
+        if(type instanceof CharType)
+            return true;
+        else if(type instanceof LongType)
+        {
+            gen.emitProgramString("push 3");
+            gen.emitProgramString("sll word 24");
+            return true;
+        }
+        else if(type instanceof IntType)
+        {
+            gen.emitProgramString("push 1");
+            gen.emitProgramString("srl word 8");
+            return true;
+        }
+        return false;
     }
     
     public Type clone()

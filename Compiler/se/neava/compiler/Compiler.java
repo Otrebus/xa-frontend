@@ -50,18 +50,17 @@ public class Compiler
     public String compile(String code) throws CompileException
     {
         checkGrammar(code);
-        
         GravelLexer lexer = new GravelLexer(new ANTLRInputStream(code));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
-        visitor = new CodeGeneratorVisitor();
         GravelParser parser = new GravelParser(tokens);
-        GravelErrorListener errorListener = new GravelErrorListener();
         
+        GravelErrorListener errorListener = new GravelErrorListener();
         lexer.removeErrorListeners();
         lexer.addErrorListener(errorListener);
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
         
+        visitor = new CodeGeneratorVisitor();
         visitor.visit(parser.program());
  
         if(visitor.error())

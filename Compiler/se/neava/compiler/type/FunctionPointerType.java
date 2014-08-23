@@ -3,6 +3,7 @@ package se.neava.compiler.type;
 import java.util.LinkedList;
 import java.util.List;
 
+import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
@@ -69,6 +70,11 @@ public class FunctionPointerType extends Type implements Cloneable
         if(isArray && (arrayLength != 0 || !type.isArray))
             return false;
         return true;            
+    }
+    
+    public boolean castTo(CodeGenerator gen, Type type)
+    {
+        return false;
     }
     
     public Type clone()

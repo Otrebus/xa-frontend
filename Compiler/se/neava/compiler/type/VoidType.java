@@ -1,5 +1,6 @@
 package se.neava.compiler.type;
 
+import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 
@@ -35,6 +36,11 @@ public class VoidType extends Type
     public Type pushFrom(CodeGeneratorVisitor cgv, ArrayLookupExpContext ctx)
     {
         return this;
+    }
+    
+    public boolean castTo(CodeGenerator gen, Type type)
+    {
+        return false;
     }
     
     public boolean isAssignableFrom(Type type)

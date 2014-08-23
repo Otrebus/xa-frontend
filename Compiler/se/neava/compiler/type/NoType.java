@@ -1,5 +1,6 @@
 package se.neava.compiler.type;
 
+import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 
@@ -40,5 +41,12 @@ public class NoType extends Type implements Cloneable {
     public Type pushFrom(CodeGeneratorVisitor codeGen, ArrayLookupExpContext ctx) {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+
+    
+    public boolean castTo(CodeGenerator gen, Type type)
+    {
+        return false;
     }
 }

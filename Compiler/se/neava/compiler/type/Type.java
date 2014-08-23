@@ -1,5 +1,6 @@
 package se.neava.compiler.type;
 
+import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.GravelParser.BaseTypeContext;
@@ -137,6 +138,7 @@ public abstract class Type implements Cloneable
         return getSize();
     }
     
+    public abstract boolean castTo(CodeGenerator gen, Type type);    
     public abstract boolean isAssignableFrom(Type type);
     public abstract Type clone();
 }

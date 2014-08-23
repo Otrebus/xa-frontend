@@ -1,5 +1,6 @@
 package se.neava.compiler.type;
 
+import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 
@@ -33,6 +34,13 @@ public class BoolType extends Type implements Cloneable
     public Type clone()
     {
         return new BoolType(this);
+    }
+    
+    public boolean castTo(CodeGenerator gen, Type type)
+    {
+        if(type instanceof BoolType)
+            return true;
+        return false;
     }
     
     public boolean isAssignableFrom(Type type)
