@@ -42,13 +42,13 @@ public class CharType extends Type implements Cloneable {
         else if(type instanceof LongType)
         {
             gen.emitProgramString("push 3");
-            gen.emitProgramString("sll word 24");
+            gen.emitProgramString("sll dword 24");
             return true;
         }
         else if(type instanceof IntType)
         {
             gen.emitProgramString("push 1");
-            gen.emitProgramString("srl word 8");
+            gen.emitProgramString("sll word 8");
             return true;
         }
         return false;

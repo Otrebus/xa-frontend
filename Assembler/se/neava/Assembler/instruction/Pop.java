@@ -70,17 +70,17 @@ public class Pop implements Instruction {
         if(size == 1)
         {
             code = new byte[] { Instruction.OP_POPBYTEFP, Parser.low8(c), Parser.high8(c) };
-            str = "pop byte [$fp + " + c + "]";
+            str = "pop byte [$fp" + (c > 0 ? ("+"+c) : c == 0 ? "" : c) + "]";
         }
         else if(size == 2)
         {
             code = new byte[] { Instruction.OP_POPWORDFP, Parser.low8(c), Parser.high8(c) };
-            str = "pop byte [$fp + " + c + "]";
+            str = "pop word [$fp" + (c > 0 ? ("+"+c) : c == 0 ? "" : c) + "]";
         }
         else if(size == 4)
         {
             code = new byte[] { Instruction.OP_POPDWORDFP, Parser.low8(c), Parser.high8(c) };
-            str = "pop byte [$fp + " + c + "]";
+            str = "pop dword [$fp" + (c > 0 ? ("+"+c) : c == 0 ? "" : c) + "]";
         }
     }
     

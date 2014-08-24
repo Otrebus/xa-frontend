@@ -197,6 +197,15 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         codeGenerator.emitProgramString("push " + type.getSizeStr() + " " + Integer.parseInt(ctx.NUM().getText()));
         return type; 
     }
+    
+    public Type visitCastExp(GravelParser.CastExpContext ctx)
+    {
+        Type castType = Type.createType(ctx.baseType());
+        Type expType = visit(ctx.expression());
+        if(!expType.castTo(codeGenerator, expType))
+            return reportError(ctx, "Illegal cast");
+        return castType;
+    }
 
     public Type visitIndirectionExp(GravelParser.IndirectionExpContext ctx) 
     {
@@ -259,7 +268,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                 }
             }
         }
-        
+
         List<Type> arguments = methodSymbol.getArguments();
         if(c.expression().size() != arguments.size())
             return reportError(ctx, "Method arity mismatch");        
@@ -374,12 +383,12 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             if(methodSymbol == null)
                 return reportError(ctx, "Undeclared method " + methodName);
            
-            List<Type> signature = methodSymbol.getArguments();
-            if(c.expression().size() != signature.size())
+            List<Type> arguments = methodSymbol.getArguments();
+            if(c.expression().size() != arguments.size())
                 return reportError(ctx, "Method arity mismatch");
-            for(int i = signature.size() - 1; i >= 0; i--)
+            for(int i = arguments.size() - 1; i >= 0; i--)
             {
-                Type ts = signature.get(i);
+                Type ts = arguments.get(i);
                 Type te = visit(c.expression(i));
                 if(!ts.equals(te))
                     return reportError(ctx, "Argument mismatch");
@@ -389,7 +398,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
             codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
             codeGenerator.emitProgramString("sync");
-            return signature.get(0);
+            return methodSymbol.getReturnType();
         }
         else
         {
@@ -403,12 +412,18 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                     return reportError(ctx, "Undeclared method " + methodName);
             }
            
-            List<Type> signature = methodSymbol.getArguments();
-            if(c.expression().size() != signature.size() - 1)
+            List<Type> arguments = methodSymbol.getArguments();
+            if(c.expression().size() != arguments.size())
                 return reportError(ctx, "Method arity mismatch");
-            for(int i = signature.size() - 1; i >= 0; i--)
+            
+            int argSize = arguments.size() + 2;
+            int retSize = methodSymbol.getReturnType().getMemorySize();
+            if(retSize > argSize)
+                codeGenerator.emitProgramString("push " + (retSize - argSize));
+            
+            for(int i = arguments.size() - 1; i >= 0; i--)
             {
-                Type ts = signature.get(i);
+                Type ts = arguments.get(i);
                 Type te = visit(c.expression(i));
                 if(!ts.equals(te))
                     return reportError(ctx, "Argument mismatch");
@@ -416,7 +431,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
 
             codeGenerator.emitProgramString("push word [$fp+4]");
             codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
-            return signature.get(0);
+            return methodSymbol.getReturnType();
         }
     }
 
@@ -475,7 +490,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         if(!wasMute)
             codeGenerator.unmute();
            
-        Type t =  a.pushFrom(this, ctx);
+        Type t = a.pushFrom(this, ctx).clone();
         t.isArray = false;
         return t;
     }

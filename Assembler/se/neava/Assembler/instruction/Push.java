@@ -41,7 +41,7 @@ public class Push implements Instruction
             if(fp)
             {
                 code = new byte[] { Instruction.OP_PUSHBYTEFP, Parser.low8(c), Parser.high8(c) };
-                str = "push byte [$fp + " + c + "]";
+                str = "push byte [$fp" + (c > 0 ? ("+"+c) : c == 0 ? "" : c) + "]";
             }
             else
             {
@@ -54,7 +54,7 @@ public class Push implements Instruction
             if(fp)
             {
                 code = new byte[] { Instruction.OP_PUSHWORDFP, Parser.low8(c), Parser.high8(c) };
-                str = "push word [$fp + " + c + "]";
+                str = "push word [$fp" + (c > 0 ? ("+"+c) : c == 0 ? "" : c) + "]";
             }
             else
             {
@@ -67,7 +67,7 @@ public class Push implements Instruction
             if(fp)
             {
                 code = new byte[] { Instruction.OP_PUSHDWORDFP, Parser.low8(c), Parser.high8(c) };
-                str = "push dword [$fp + " + c + "]";
+                str = "push dword [$fp" + (c > 0 ? ("+"+c) : c == 0 ? "" : c) + "]";
             }
             else
             {

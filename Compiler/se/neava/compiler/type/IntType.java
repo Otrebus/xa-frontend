@@ -41,13 +41,13 @@ public class IntType extends Type implements Cloneable
         else if(type instanceof LongType)
         {
             gen.emitProgramString("push 2");
-            gen.emitProgramString("sll word 16");
+            gen.emitProgramString("sll dword 16");
             return true;
         }
         else if(type instanceof CharType)
         {
-            gen.emitProgramString("srl dword 24");
-            gen.emitProgramString("pop 3");
+            gen.emitProgramString("srl word 8");
+            gen.emitProgramString("pop 1");
             return true;
         }
         return false;
