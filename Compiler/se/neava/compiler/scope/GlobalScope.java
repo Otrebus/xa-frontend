@@ -4,6 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import se.neava.compiler.CodeGenerator;
+import se.neava.compiler.CompileException;
 import se.neava.compiler.GravelParser.ClassDefinitionContext;
 import se.neava.compiler.GravelParser.ExternDeclarationContext;
 import se.neava.compiler.GravelParser.ProgramContext;
@@ -17,12 +18,12 @@ public class GlobalScope implements Scope
     List<MethodSymbol> externMethods = new LinkedList<MethodSymbol>();
     List<ClassScope> classScopes = new LinkedList<ClassScope>();
     
-    public GlobalScope(CodeGenerator gen, ProgramContext ctx)
+    public GlobalScope(CodeGenerator gen, ProgramContext ctx) throws CompileException
     {
         for(ExternDeclarationContext e : ctx.externDeclaration())
-            externMethods.add(new MethodSymbol(e));
+            addExternMethod(new MethodSymbol(e));
         for(ClassDefinitionContext e : ctx.classDefinition())
-            classScopes.add(new ClassScope(gen, this, e));
+            addClassScope(new ClassScope(gen, this, e));
     }
     
     public MethodSymbol getExternMethod(String name)
@@ -33,13 +34,17 @@ public class GlobalScope implements Scope
         return null;
     }
     
-    public void addExternMethod(MethodSymbol symbol)
+    public void addExternMethod(MethodSymbol symbol) throws CompileException
     {
+        if(getExternMethod(symbol.getName()) != null)
+            throw new CompileException("Duplicate extern method " + symbol.getName());
         externMethods.add(symbol);
     }
     
-    public void addClassScope(ClassScope scope)
+    public void addClassScope(ClassScope scope) throws CompileException
     {
+        if(getClassScope(scope.getName()) != null)
+            throw new CompileException("Duplicate class " + scope.getName());
         classScopes.add(scope);
     }
     

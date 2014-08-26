@@ -24,9 +24,7 @@ import java.util.List;
 
 program : externDeclaration* classInstanceDeclaration* classDefinition* ;
 
-externDeclaration : 'extern' type identifier '(' type (',' type)* ')' ';' ;
-
-identifier : TEXTNUM ;
+externDeclaration : 'extern' type identifier '(' (type (',' type)*)? ')' ';' ;
 
 type : baseType brackets? ;
 
@@ -38,7 +36,9 @@ functionPtr : 'function' '(' ((type (',' type)*))? ')' '->' type ;
 
 classInstanceDeclaration : identifier identifier ';' ;
 
-classDefinition : 'class' identifier '{' classVariableDeclaration* methodDefinition* '}' ;
+classDefinition : classType identifier '{' classVariableDeclaration* methodDefinition* '}' ;
+
+classType : 'object' | 'class' ;
 
 classVariableDeclaration : type identifier ';' ;
 
@@ -72,7 +72,7 @@ expression :
     identifier #identifierExp |
     'true' #trueExp |
     'false' #falseExp |
-    '(' baseType ')' NUM #numExp |
+    NUM suffix #numExp |
     '(' baseType ')' expression #castExp |
     expression ('[' expression ']') #arrayLookupExp
     | identifier '.' identifier #indirectionExp
@@ -96,13 +96,17 @@ functionCallStatement : functionCall ';' ;
 
 returnStatement : 'return' expression? ';' ;
 
-TEXTNUM : (TEXT)+(NUM | TEXT)* ;
+suffix : identifier ;
+
+identifier : TEXTNUM ;
+
+TEXTNUM : (CHAR)+(NUM|CHAR)* ;
 
 number : NUM ;
 
 string : STRING ;
 
-TEXT : ('a'..'z' | 'A'..'Z' | '_' );
+CHAR : ('a'..'z' | 'A'..'Z' | '_' );
 
 NUM : ('0'..'9')+ ;
 

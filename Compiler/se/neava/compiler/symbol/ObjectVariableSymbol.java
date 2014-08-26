@@ -5,21 +5,31 @@ import se.neava.compiler.GravelParser;
 import se.neava.compiler.GravelParser.ClassVariableDeclarationContext;
 import se.neava.compiler.type.Type;
 
-public class ClassVariableSymbol extends VariableSymbol 
+public class ObjectVariableSymbol extends VariableSymbol 
 {
-    int position;
+    private String label;
+
+    public void setLabel(String label)
+    {
+        this.label = label; 
+    }
     
-    public ClassVariableSymbol(ClassVariableDeclarationContext ctx) 
+    public String getLabel(String label)
+    {
+        return label;
+    }
+    
+    public ObjectVariableSymbol(ClassVariableDeclarationContext ctx) 
     {
         name = ctx.identifier().getText();
         type = Type.createType(ctx.type());
     }
     
-    public ClassVariableSymbol(ClassVariableDeclarationContext ctx, int position) 
+    public ObjectVariableSymbol(ClassVariableDeclarationContext ctx, String label) 
     {
         name = ctx.identifier().getText();
         type = Type.createType(ctx.type());
-        this.position = position;
+        this.label = label;
     }
 
     public Type getType() 
@@ -29,19 +39,12 @@ public class ClassVariableSymbol extends VariableSymbol
 
     public void emitLoad(CodeGenerator codeGenerator) 
     {
-        // TODO Auto-generated method stub
-        codeGenerator.emitProgramString("push word [$fp+4]");
-        codeGenerator.emitProgramString("push word " + position);
-        codeGenerator.emitProgramString("add word");
-        codeGenerator.emitProgramString("push " + type.getSizeStr());
+        codeGenerator.emitProgramString("push " + type.getSizeStr() + " [" + label + "]");
     }
 
     public void emitStore(CodeGenerator codeGenerator) 
     {
-        codeGenerator.emitProgramString("push word [$fp+4]");
-        codeGenerator.emitProgramString("push word " + position);
-        codeGenerator.emitProgramString("add word");
-        codeGenerator.emitProgramString("pop " + type.getSizeStr()); 
+        codeGenerator.emitProgramString("pop " + type.getSizeStr() + " [" + label + "]");
     }
 
     public void emitArrayLoad(CodeGenerator codeGenerator) 
@@ -61,9 +64,7 @@ public class ClassVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
-            codeGenerator.emitProgramString("push word [$fp+4]"); // Current object ("this")
-            codeGenerator.emitProgramString("push word " + position);
-            codeGenerator.emitProgramString("add word"); // Array start address now on top
+            codeGenerator.emitProgramString("push " + label); // Current object ("this")
 
             codeGenerator.emitProgramString("add word"); // Add with offset
             codeGenerator.emitProgramString("push " + type.getElementSizeStr()); // Data element now on top
@@ -89,10 +90,7 @@ public class ClassVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
-            codeGenerator.emitProgramString("push word [$fp+4]"); // Current object ("this")
-            codeGenerator.emitProgramString("push word " + position);
-            codeGenerator.emitProgramString("add word"); // Array start address now on top
-
+            codeGenerator.emitProgramString("push " + label); // Object pos
             codeGenerator.emitProgramString("add word"); // Add with offset
             codeGenerator.emitProgramString("pop " + type.getElementSizeStr()); // Pop to element
         }

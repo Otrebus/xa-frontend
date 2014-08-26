@@ -62,9 +62,9 @@ public class Compiler
         
         visitor = new CodeGeneratorVisitor();
         visitor.visit(parser.program());
- 
         if(visitor.error())
             throw new CompileException(visitor.getErrors().get(0));
+        visitor.addEntryPoint();
         return visitor.getCode();
     }
 }

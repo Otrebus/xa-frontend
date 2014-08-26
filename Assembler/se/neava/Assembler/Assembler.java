@@ -69,13 +69,13 @@ public class Assembler {
             {
                 Lexer lex = new Lexer(line);
                 Parser parser = new Parser(lex); 
-                System.out.println(line);
                 Statement s = parser.parse();
                 if(s != null)
                     s.addToProgram(p);
             }
             catch(ParseException e)
             {
+                System.out.println(lineNumber);
                 throw new ParseException(e.getMessage(), lineNumber);
             }
             lineNumber++;

@@ -56,7 +56,7 @@ public class MethodSymbol extends Symbol
         int size = 0;
         for(int i = 1; i < signature.size(); i++)
             size += signature.get(i).getMemorySize();
-        return size + 2;
+        return size;
     }
     
     public Type getReturnType()

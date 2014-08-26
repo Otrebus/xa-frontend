@@ -19,11 +19,13 @@ public class MethodScope implements Scope
     Type returnType;
     MethodSymbol methodSymbol;
     
-    int argumentVariableSize = 2;
+    int argumentVariableSize = 0;
     int localVariableSize = 0;
     
-    public MethodScope(Scope parent, MethodDefinitionContext ctx) 
+    public MethodScope(ClassScope parent, MethodDefinitionContext ctx) 
     {
+        if(!parent.isObject())
+            argumentVariableSize = 2;
         this.parent = parent;
         returnType = Type.createType(ctx.type(0));
         name = ctx.identifier(0).getText();
