@@ -47,7 +47,7 @@ public class ClassScope implements Scope
             sym.setLabel(label);
             parent.addClassInstance(sym);
             gen.emitDataLabel(label);
-            gen.emitDataln("dword");
+            gen.emitDataln("dword 0");
             for(ClassVariableDeclarationContext c : ctx.classVariableDeclaration())
             {
                 String label = gen.makeLabel(className + "_" + c.identifier().getText());;

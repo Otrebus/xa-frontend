@@ -15,17 +15,17 @@ public class Sez implements Instruction
         if(size == 1)
         {
             code = new byte[] { Instruction.OP_SEZBYTE };
-            str = "jez byte";
+            str = "sez byte";
         }
         else if(size == 2)
         {
             code = new byte[] { Instruction.OP_SEZWORD };
-            str = "jez word";
+            str = "sez word";
         }
         else
         {
             code = new byte[] { Instruction.OP_SEZDWORD };
-            str = "jez dword";
+            str = "sez dword";
         }
     }
     

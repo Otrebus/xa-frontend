@@ -15,17 +15,17 @@ public class Snez implements Instruction
         if(size == 1)
         {
             code = new byte[] { Instruction.OP_SNEZBYTE };
-            str = "jnez byte";
+            str = "snez byte";
         }
         else if(size == 2)
         {
             code = new byte[] { Instruction.OP_SNEZWORD };
-            str = "jnez word";
+            str = "snez word";
         }
         else
         {
             code = new byte[] { Instruction.OP_SNEZDWORD };
-            str = "jnez dword";
+            str = "snez dword";
         }
     }
     

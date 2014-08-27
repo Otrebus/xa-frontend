@@ -15,17 +15,17 @@ public class Sgz implements Instruction
         if(size == 1)
         {
             code = new byte[] { Instruction.OP_SGZBYTE };
-            str = "jgz byte";
+            str = "sgz byte";
         }
         else if(size == 2)
         {
             code = new byte[] { Instruction.OP_SGZWORD };
-            str = "jgz word";
+            str = "sgz word";
         }
         else
         {
             code = new byte[] { Instruction.OP_SGZDWORD };
-            str = "jgz dword";
+            str = "sgz dword";
         }
     }
     

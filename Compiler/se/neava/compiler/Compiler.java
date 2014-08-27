@@ -64,7 +64,8 @@ public class Compiler
         visitor.visit(parser.program());
         if(visitor.error())
             throw new CompileException(visitor.getErrors().get(0));
-        visitor.addEntryPoint();
+        if(!visitor.addEntryPoint())
+            throw new CompileException(visitor.getErrors().get(0));
         return visitor.getCode();
     }
 }

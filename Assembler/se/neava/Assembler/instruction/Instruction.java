@@ -99,7 +99,7 @@ public interface Instruction extends Statement {
     public final static byte OP_SRLWORD = 0x4D;
     public final static byte OP_SRLDWORD = 0x4E;
     
-    public final static byte OP_SRLVBYTE = 0x5F;
+    public final static byte OP_SRLVBYTE = 0x4F;
     public final static byte OP_SRLVWORD = 0x50;
     public final static byte OP_SRLVDWORD = 0x51;
     

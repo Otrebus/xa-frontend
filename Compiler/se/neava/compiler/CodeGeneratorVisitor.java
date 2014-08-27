@@ -7,6 +7,10 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import se.neava.compiler.GravelParser.FunctionCallContext;
+import se.neava.compiler.GravelParser.MethodBodyContext;
+import se.neava.compiler.GravelParser.MethodDefinitionContext;
+import se.neava.compiler.GravelParser.MethodVariableDefinitionContext;
+import se.neava.compiler.GravelParser.StatementContext;
 import se.neava.compiler.scope.ClassScope;
 import se.neava.compiler.scope.GlobalScope;
 import se.neava.compiler.scope.MethodScope;
@@ -73,8 +77,12 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         ClassInstanceSymbol mainSym = currentScope.getClassInstance("main");
         if(mainSym == null)
         {
-            reportError(null, "No main object!");
-            return false;
+            mainSym = currentScope.getClassInstance("Main");
+            if(mainSym == null)
+            {
+                reportError(null, "No main object!");
+                return false;
+            }
         }
         ClassScope mainScope = mainSym.getClassScope();
         if(!mainScope.getName().equals("Main"))
@@ -86,15 +94,16 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         MethodSymbol methodSymbol = mainScope.getMethod("main");
         if(methodSymbol == null)
         {
-            reportError(null, "Main object not of type Main!");
+            reportError(null, "No main method!");
             return false;
         }
         
-        codeGenerator.emitProgramString("push Main_main");
-        codeGenerator.emitProgramString("push main");
-        if(mainScope.isObject())
-            codeGenerator.emitProgramString("push main");
+        if(!mainScope.isObject())
+            codeGenerator.emitProgramString("push " + mainSym.getName());
+        codeGenerator.emitProgramString("push " + mainSym.getName() + "_main");
+        codeGenerator.emitProgramString("push " + mainSym.getName());
         codeGenerator.emitProgramString("sync");
+        codeGenerator.emitProgramString("ret 0");
         return true;
     }
 
@@ -116,7 +125,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         
         codeGenerator.emitExternLabel(lbl);
         codeGenerator.emitExternln("\"" + name + "\"");
-        return visitChildren(ctx); 
+        return new NoType(); 
     }
     
     public Type visitClassInstanceDeclaration(@NotNull GravelParser.ClassInstanceDeclarationContext ctx) 
@@ -150,7 +159,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return t;
     }
     
-    public Type visitMethodDefinition(GravelParser.MethodDefinitionContext ctx) 
+    public Type visitMethodDefinition(MethodDefinitionContext ctx) 
     { 
         currentScope = new MethodScope(((ClassScope) currentScope), ctx);
         MethodSymbol s = currentScope.getMethod(ctx.identifier(0).getText());
@@ -161,7 +170,19 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return t;
     }
     
-    public Type visitMethodVariableDefinition(@NotNull GravelParser.MethodVariableDefinitionContext ctx) 
+    public Type visitMethodBody(MethodBodyContext ctx)
+    {
+        for(MethodVariableDefinitionContext i : ctx.methodVariableDefinition())
+            visit(i);
+        if(((MethodScope) currentScope).getLocalVariableSize() > 0)
+            codeGenerator.emitProgramString("push " + ((MethodScope) currentScope).getLocalVariableSize());
+        for(StatementContext i : ctx.statement())
+            visit(i);
+        visit(ctx.returnStatement());
+        return new NoType();
+    }
+    
+    public Type visitMethodVariableDefinition(MethodVariableDefinitionContext ctx) 
     { 
         if(!((MethodScope) currentScope).addVariable(ctx.identifier().getText(), Type.createType(ctx.type())))
             reportError(ctx, "May not overload argument " + ctx.identifier().getText());
@@ -432,9 +453,11 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             String methodName = c.identifier(0).getText();
             
             MethodSymbol methodSymbol = currentScope.getMethod(methodName);
+            boolean isExternMethod = false;
             if(methodSymbol == null)
             {
                 methodSymbol = currentScope.getExternMethod(methodName);
+                isExternMethod = true;
                 if(methodSymbol == null)
                     return reportError(ctx, "Undeclared method " + methodName);
             }
@@ -456,7 +479,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                     return reportError(ctx, "Argument mismatch");
             }
 
-            if(!((ClassScope) currentScope.getParent()).isObject())
+            if(!((ClassScope) currentScope.getParent()).isObject() && !isExternMethod)
                 codeGenerator.emitProgramString("push word [$fp+4]");
             codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
             return methodSymbol.getReturnType();
@@ -507,7 +530,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         visit(ctx.statement());
         codeGenerator.emitProgramString("jmp " + loopLabel);
         codeGenerator.emitProgramLabel(endLabel);
-        return visitChildren(ctx); 
+        return new NoType();
     }
 
     public Type visitArrayLookupExp(@NotNull GravelParser.ArrayLookupExpContext ctx)
@@ -565,9 +588,11 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             String methodName = c.identifier(0).getText();
             
             MethodSymbol methodSymbol = currentScope.getMethod(methodName);
+            boolean isExternMethod = false;
             if(methodSymbol == null)
             {
                 methodSymbol = currentScope.getExternMethod(methodName);
+                isExternMethod = true;
                 if(methodSymbol == null)
                     return reportError(ctx, "Undeclared method " + methodName);
             }
@@ -584,7 +609,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                     return reportError(ctx, "Argument mismatch");
             }
     
-            if(((ClassScope) currentScope.getParent()).isObject())
+            if(((ClassScope) currentScope.getParent()).isObject() && !isExternMethod)
                 codeGenerator.emitProgramString("push word [$fp+4]");
             codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
             
@@ -725,6 +750,6 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         if(ctx.elseClause() != null)
             visit(ctx.elseClause().statement());
         codeGenerator.emitProgramLabel(elseLabel);
-        return visitChildren(ctx); 
+        return new NoType(); 
     }
 }

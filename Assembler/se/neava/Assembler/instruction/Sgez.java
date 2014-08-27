@@ -15,17 +15,17 @@ public class Sgez implements Instruction
         if(size == 1)
         {
             code = new byte[] { Instruction.OP_SGEZBYTE };
-            str = "jgez byte";
+            str = "sgez byte";
         }
         else if(size == 2)
         {
             code = new byte[] { Instruction.OP_SGEZWORD };
-            str = "jgez word";
+            str = "sgez word";
         }
         else
         {
             code = new byte[] { Instruction.OP_SGEZDWORD };
-            str = "jgez dword";
+            str = "sgez dword";
         }
     }
     

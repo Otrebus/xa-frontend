@@ -82,6 +82,11 @@ public class MethodScope implements Scope
         localVariables.add(new LocalVariableSymbol(str, type, localVariableSize));
         return true;
     }
+    
+    public int getLocalVariableSize()
+    {
+        return localVariableSize;
+    }
 
     public ClassScope getClassScope(String str) 
     {

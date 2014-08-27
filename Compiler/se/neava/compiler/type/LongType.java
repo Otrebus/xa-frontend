@@ -40,13 +40,13 @@ public class LongType extends Type implements Cloneable
             return true;
         else if(type instanceof IntType)
         {
-            gen.emitProgramString("srl dword 16");
+            gen.emitProgramString("sll dword 16");
             gen.emitProgramString("pop 2");
             return true;
         }
         else if(type instanceof CharType)
         {
-            gen.emitProgramString("srl dword 24");
+            gen.emitProgramString("sll dword 24");
             gen.emitProgramString("pop 3");
             return true;
         }
