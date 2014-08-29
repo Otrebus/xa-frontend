@@ -53,7 +53,7 @@ public class ClassScope implements Scope
                 String label = gen.makeLabel(className + "_" + c.identifier().getText());;
                 ObjectVariableSymbol objectVariableSymbol = new ObjectVariableSymbol(c, label);
                 gen.emitDataLabel(label);
-                gen.emitDataln("byte[" + objectVariableSymbol.getType().getSize() + "]");
+                gen.emitDataln("byte[" + objectVariableSymbol.getType().getMemorySize() + "]");
                 variableSymbols.add(objectVariableSymbol);
             }            
         }

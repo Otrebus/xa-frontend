@@ -39,12 +39,18 @@ public class ObjectVariableSymbol extends VariableSymbol
 
     public void emitLoad(CodeGenerator codeGenerator) 
     {
-        codeGenerator.emitProgramString("push " + type.getSizeStr() + " [" + label + "]");
+        if(type.getArrayLength() == 0)
+            codeGenerator.emitProgramString("push " + type.getSizeStr() + " [" + label + "]");
+        else
+            codeGenerator.emitProgramString("push " + label);
     }
 
     public void emitStore(CodeGenerator codeGenerator) 
     {
-        codeGenerator.emitProgramString("pop " + type.getSizeStr() + " [" + label + "]");
+        if(type.getArrayLength() == 0)
+            codeGenerator.emitProgramString("pop " + type.getSizeStr() + " [" + label + "]");
+        else
+            codeGenerator.emitProgramString("pop " + label);
     }
 
     public void emitArrayLoad(CodeGenerator codeGenerator) 
