@@ -29,11 +29,12 @@ public class ClassVariableSymbol extends VariableSymbol
 
     public void emitLoad(CodeGenerator codeGenerator) 
     {
-        // TODO Auto-generated method stub
         codeGenerator.emitProgramString("push word [$fp+4]");
         codeGenerator.emitProgramString("push word " + position);
         codeGenerator.emitProgramString("add word");
-        codeGenerator.emitProgramString("push " + type.getSizeStr());
+
+        if(type.getArrayLength() == 0)
+            codeGenerator.emitProgramString("push " + type.getSizeStr());
     }
 
     public void emitStore(CodeGenerator codeGenerator) 

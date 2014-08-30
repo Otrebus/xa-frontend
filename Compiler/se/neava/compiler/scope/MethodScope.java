@@ -3,6 +3,7 @@ package se.neava.compiler.scope;
 import java.util.LinkedList;
 import java.util.List;
 
+import se.neava.compiler.CompileException;
 import se.neava.compiler.GravelParser.MethodDefinitionContext;
 import se.neava.compiler.symbol.ArgumentVariableSymbol;
 import se.neava.compiler.symbol.ClassInstanceSymbol;
@@ -13,7 +14,7 @@ import se.neava.compiler.type.Type;
 
 public class MethodScope implements Scope 
 {
-    List<VariableSymbol> localVariables = new LinkedList<VariableSymbol>();
+    List<VariableSymbol> variables = new LinkedList<VariableSymbol>();
     Scope parent;
     String name;
     Type returnType;
@@ -22,7 +23,7 @@ public class MethodScope implements Scope
     int argumentVariableSize = 0;
     int localVariableSize = 0;
     
-    public MethodScope(ClassScope parent, MethodDefinitionContext ctx) 
+    public MethodScope(ClassScope parent, MethodDefinitionContext ctx) throws CompileException 
     {
         if(!parent.isObject())
             argumentVariableSize = 2;
@@ -32,9 +33,11 @@ public class MethodScope implements Scope
         
         for(int i = 1; i < ctx.identifier().size(); i++)
         {
+            if(ctx.type(i).brackets() != null && ctx.type(i).brackets().NUM() != null)
+                throw new CompileException("Array arguments are not allowed");
             Type type = Type.createType(ctx.type(i));
             String name = ctx.identifier(i).getText();
-            localVariables.add(new ArgumentVariableSymbol(name, type, argumentVariableSize));
+            variables.add(new ArgumentVariableSymbol(name, type, argumentVariableSize));
             argumentVariableSize += type.getMemorySize();
         }
         methodSymbol = getMethod(name);
@@ -67,7 +70,7 @@ public class MethodScope implements Scope
 
     public VariableSymbol getVariable(String str) 
     {
-        for(VariableSymbol s : localVariables)
+        for(VariableSymbol s : variables)
             if(s.getName().equals(str))
                 return s;
         return parent.getVariable(str);
@@ -75,11 +78,11 @@ public class MethodScope implements Scope
     
     public boolean addVariable(String str, Type type)
     {
-        for(VariableSymbol s : localVariables)
+        for(VariableSymbol s : variables)
             if(s.getName().equals(str))
                 return false;
         localVariableSize += type.getMemorySize();
-        localVariables.add(new LocalVariableSymbol(str, type, localVariableSize));
+        variables.add(new LocalVariableSymbol(str, type, localVariableSize));
         return true;
     }
     

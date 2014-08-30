@@ -161,7 +161,14 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     
     public Type visitMethodDefinition(MethodDefinitionContext ctx) 
     { 
-        currentScope = new MethodScope(((ClassScope) currentScope), ctx);
+        try 
+        {
+            currentScope = new MethodScope(((ClassScope) currentScope), ctx);
+        } 
+        catch (CompileException e) 
+        {
+            return reportError(ctx, e.getMessage());
+        }
         MethodSymbol s = currentScope.getMethod(ctx.identifier(0).getText());
 
         codeGenerator.emitProgramLabel(s.getLabel());
@@ -409,81 +416,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
 
     public Type visitFunctionCallExp(GravelParser.FunctionCallExpContext ctx) 
     { 
-        FunctionCallContext c = ctx.functionCall();
-        if(c.identifier().size() > 1)
-        {
-            String objName = c.identifier(0).getText();
-            String methodName = c.identifier(1).getText();
-            
-            ClassInstanceSymbol classInstanceSymbol = currentScope.getClassInstance(objName);
-            if(classInstanceSymbol == null)
-                return reportError(ctx, "Undeclared identifier " + objName);
-
-            ClassScope classScope = classInstanceSymbol.getClassScope();
-            MethodSymbol methodSymbol = classScope.getMethod(methodName);
-            if(methodSymbol == null)
-                return reportError(ctx, "Undeclared method " + methodName);
-           
-            List<Type> arguments = methodSymbol.getArguments();
-            if(c.expression().size() != arguments.size())
-                return reportError(ctx, "Method arity mismatch");
-            
-            int retSize = methodSymbol.getReturnType().getMemorySize();
-            int argSize = methodSymbol.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isObject() ? 0 : 2);
-            if(retSize > argSize)
-                codeGenerator.emitProgramString("push " + (retSize - argSize));
-            
-            for(int i = arguments.size() - 1; i >= 0; i--)
-            {
-                Type ts = arguments.get(i);
-                Type te = visit(c.expression(i));
-                if(!ts.equals(te))
-                    return reportError(ctx, "Argument mismatch");
-            }
-            
-            if(!classScope.isObject())
-                codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
-            codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
-            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
-            codeGenerator.emitProgramString("sync");
-            return methodSymbol.getReturnType();
-        }
-        else
-        {
-            String methodName = c.identifier(0).getText();
-            
-            MethodSymbol methodSymbol = currentScope.getMethod(methodName);
-            boolean isExternMethod = false;
-            if(methodSymbol == null)
-            {
-                methodSymbol = currentScope.getExternMethod(methodName);
-                isExternMethod = true;
-                if(methodSymbol == null)
-                    return reportError(ctx, "Undeclared method " + methodName);
-            }
-           
-            List<Type> arguments = methodSymbol.getArguments();
-            if(c.expression().size() != arguments.size())
-                return reportError(ctx, "Method arity mismatch");
-            
-            int retSize = methodSymbol.getReturnType().getMemorySize();
-            int argSize = methodSymbol.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isObject() ? 0 : 2);
-            if(retSize > argSize)
-                codeGenerator.emitProgramString("push " + (retSize - argSize));
-            
-            for(int i = arguments.size() - 1; i >= 0; i--)
-            {
-                Type ts = arguments.get(i);
-                Type te = visit(c.expression(i));
-                if(!ts.equals(te))
-                    return reportError(ctx, "Argument mismatch");
-            }
-
-            if(!((ClassScope) currentScope.getParent()).isObject() && !isExternMethod)
-                codeGenerator.emitProgramString("push word [$fp+4]");
-            codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
-            return methodSymbol.getReturnType();
-        }
+        return visit(ctx.functionCall());
     }
 
     public Type visitAssignment(GravelParser.AssignmentContext ctx) 
@@ -549,74 +482,122 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     public Type visitFunctionCallStatement(GravelParser.FunctionCallStatementContext ctx)
     {
         FunctionCallContext c = ctx.functionCall();
-        if(c.identifier().size() > 1)
+        Type t = visit(c);
+        if(t.getMemorySize() > 0)
+            codeGenerator.emitProgramString("pop " + t.getMemorySize());
+        return t;
+    }
+    
+    public Type methodCall(GravelParser.FunctionCallContext ctx, ClassInstanceSymbol classInstanceSymbol, MethodSymbol methodSymbol)
+    {
+        List<Type> arguments = methodSymbol.getArguments();
+        if(ctx.expression().size() != arguments.size())
+            return reportError(ctx, "Method arity mismatch");
+        
+        int retSize = methodSymbol.getReturnType().getMemorySize();
+        int argSize = methodSymbol.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isObject() ? 0 : 2);
+        if(retSize > argSize)
+            codeGenerator.emitProgramString("push " + (retSize - argSize));
+        
+        for(int i = arguments.size() - 1; i >= 0; i--)
         {
-            String objName = c.identifier(0).getText();
-            String methodName = c.identifier(1).getText();
+            Type ts = arguments.get(i);
+            Type te = visit(ctx.expression(i));
+            if(!ts.equals(te))
+                return reportError(ctx, "Argument mismatch");
+            if(ts.isArray())
+                return reportError(ctx, "May not call foreign method with array argument");
+        }
+        
+        if(!classInstanceSymbol.getClassScope().isObject())
+            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+        codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
+        codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+        codeGenerator.emitProgramString("sync");
+        return methodSymbol.getReturnType();       
+    }
+    
+    public Type functionCall(GravelParser.FunctionCallContext ctx, MethodSymbol methodSymbol)
+    {
+        List<Type> arguments = methodSymbol.getArguments();
+        if(ctx.expression().size() != arguments.size())
+            return reportError(ctx, "Method arity mismatch");
+        
+        int retSize = methodSymbol.getReturnType().getMemorySize();
+        int argSize = methodSymbol.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isObject() ? 0 : 2);
+        if(retSize > argSize)
+            codeGenerator.emitProgramString("push " + (retSize - argSize));
+        
+        for(int i = arguments.size() - 1; i >= 0; i--)
+        {
+            Type ts = arguments.get(i);
+            Type te = visit(ctx.expression(i));
+            if(!ts.equals(te))
+                return reportError(ctx, "Argument mismatch");
+        }
+
+        if(!((ClassScope) currentScope.getParent()).isObject())
+            codeGenerator.emitProgramString("push word [$fp+4]");
+        codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
+        return methodSymbol.getReturnType();
+    }
+    
+    public Type externFunctionCall(GravelParser.FunctionCallContext ctx, MethodSymbol methodSymbol)
+    {
+        List<Type> arguments = methodSymbol.getArguments();
+        if(ctx.expression().size() != arguments.size())
+            return reportError(ctx, "Method arity mismatch");
+        
+        int retSize = methodSymbol.getReturnType().getMemorySize();
+        int argSize = methodSymbol.getTotalArgumentSize();
+        if(retSize > argSize)
+            codeGenerator.emitProgramString("push " + (retSize - argSize));
+        
+        for(int i = arguments.size() - 1; i >= 0; i--)
+        {
+            Type ts = arguments.get(i);
+            Type te = visit(ctx.expression(i));
+            if(!ts.equals(te))
+                return reportError(ctx, "Argument mismatch");
+        }
+
+        codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
+        return methodSymbol.getReturnType();
+    }
+    
+    public Type visitFunctionCall(GravelParser.FunctionCallContext ctx)
+    {
+        if(ctx.identifier().size() > 1)
+        {
+            String objName = ctx.identifier(0).getText();
+            String methodName = ctx.identifier(1).getText();
             
             ClassInstanceSymbol classInstanceSymbol = currentScope.getClassInstance(objName);
             if(classInstanceSymbol == null)
                 return reportError(ctx, "Undeclared identifier " + objName);
-    
+            
             ClassScope classScope = classInstanceSymbol.getClassScope();
             MethodSymbol methodSymbol = classScope.getMethod(methodName);
+
             if(methodSymbol == null)
                 return reportError(ctx, "Undeclared method " + methodName);
-           
-            List<Type> arguments = methodSymbol.getArguments();
-            if(c.expression().size() != arguments.size())
-                return reportError(ctx, "Method arity mismatch");
-            for(int i = arguments.size() - 1; i >= 0; i--)
-            {
-                Type ts = arguments.get(i);
-                Type te = visit(c.expression(i));
-                if(!ts.equals(te))
-                    return reportError(ctx, "Argument mismatch");
-            }
-    
-            if(!classScope.isObject())
-                codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
-            codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
-            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
-            codeGenerator.emitProgramString("sync");
-            if(methodSymbol.getReturnType().getMemorySize() > 0)
-                codeGenerator.emitProgramString("pop " + methodSymbol.getReturnType().getMemorySize());
-            return methodSymbol.getReturnType();
+            return methodCall(ctx, classInstanceSymbol, methodSymbol);
         }
         else
         {
-            String methodName = c.identifier(0).getText();
-            
+            String methodName = ctx.identifier(0).getText();
             MethodSymbol methodSymbol = currentScope.getMethod(methodName);
-            boolean isExternMethod = false;
+            
             if(methodSymbol == null)
             {
                 methodSymbol = currentScope.getExternMethod(methodName);
-                isExternMethod = true;
                 if(methodSymbol == null)
                     return reportError(ctx, "Undeclared method " + methodName);
+                return externFunctionCall(ctx, methodSymbol);
             }
-           
-            List<Type> arguments = methodSymbol.getArguments();
-            int z = c.expression().size();
-            if(c.expression().size() != arguments.size())
-                return reportError(ctx, "Method arity mismatch");
-            for(int i = arguments.size() - 1; i >= 0; i--)
-            {
-                Type ts = arguments.get(i);
-                Type te = visit(c.expression(i));
-                if(!ts.equals(te))
-                    return reportError(ctx, "Argument mismatch");
-            }
-    
-            if(((ClassScope) currentScope.getParent()).isObject() && !isExternMethod)
-                codeGenerator.emitProgramString("push word [$fp+4]");
-            codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
-            
-            if(methodSymbol.getReturnType().getMemorySize() > 0)
-                codeGenerator.emitProgramString("pop " + methodSymbol.getReturnType().getMemorySize());
-            return methodSymbol.getReturnType();
+            return functionCall(ctx, methodSymbol);
         }
+
     }
 
     public Type visitGtExp(GravelParser.GtExpContext ctx) 
@@ -744,12 +725,22 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type a = visit(ctx.expression());
         if(!(a instanceof BoolType))
             return reportError(ctx, "Expression in if statement must be of type bool");
-        String elseLabel = codeGenerator.makeLabel();
-        codeGenerator.emitProgramString("jez " + elseLabel);
-        visit(ctx.statement());
-        if(ctx.elseClause() != null)
+        String doneLabel = codeGenerator.makeLabel();
+        if(ctx.elseClause() == null) 
+        {
+            codeGenerator.emitProgramString("jez " + doneLabel);
+            visit(ctx.statement());
+        }
+        else
+        {
+            String elseLabel = codeGenerator.makeLabel();
+            codeGenerator.emitProgramString("jez " + elseLabel);
+            visit(ctx.statement());
+            codeGenerator.emitProgramString("jmp " + doneLabel);
+            codeGenerator.emitProgramLabel(elseLabel);
             visit(ctx.elseClause().statement());
-        codeGenerator.emitProgramLabel(elseLabel);
+        }
+        codeGenerator.emitProgramLabel(doneLabel);
         return new NoType(); 
     }
 }

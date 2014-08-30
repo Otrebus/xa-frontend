@@ -98,7 +98,6 @@ public class ClassScope implements Scope
         return variableSymbols;
     }
 
-    @Override
     public VariableSymbol getVariable(String str) {
         for(VariableSymbol s : variableSymbols)
             if(str.equals(s.getName()))
@@ -106,7 +105,6 @@ public class ClassScope implements Scope
         return parent.getVariable(str);
     }
 
-    @Override
     public ClassScope getClassScope(String str) 
     {
         if(className.equals(str))
