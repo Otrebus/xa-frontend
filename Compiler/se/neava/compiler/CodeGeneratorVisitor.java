@@ -328,20 +328,37 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         
         // Last push is "this", but this is repeated due to the requirements of async
         // TODO: make this stuff less retarded?
-        if(((ClassScope) currentScope.getParent()).isObject())
+        if(classInstanceSymbol == null)
         {
-            if(classInstanceSymbol == null)
+            if(!((ClassScope) currentScope.getParent()).isObject())
                 codeGenerator.emitProgramString("push word [$fp+4]");
             else
-                codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+                codeGenerator.emitProgramString("push " + ((ClassScope) currentScope.getParent()).getLabel());
+        }
+        else
+        {
+            if(!classInstanceSymbol.getClassScope().isObject())
+                codeGenerator.emitProgramString("push word [$fp+4]");
+            else
+                codeGenerator.emitProgramString("push " + (classInstanceSymbol.getClassScope().getLabel()));
         }
         
         codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
         
         if(classInstanceSymbol == null)
-            codeGenerator.emitProgramString("push word [$fp+4]");
+        {
+            if(!((ClassScope) currentScope.getParent()).isObject())
+                codeGenerator.emitProgramString("push word [$fp+4]");
+            else
+                codeGenerator.emitProgramString("push " + ((ClassScope) currentScope.getParent()).getLabel());
+        }
         else
-            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+        {
+            if(!classInstanceSymbol.getClassScope().isObject())
+                codeGenerator.emitProgramString("push word [$fp+4]");
+            else
+                codeGenerator.emitProgramString("push " + (classInstanceSymbol.getClassScope().getLabel()));
+        }
         
         if(ctx.after() != null)
         {
@@ -424,6 +441,8 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         // TODO: this is horrible, put in visitLvalue instead
         String varName = ctx.lvalue().identifier().getText();
         VariableSymbol var = currentScope.getVariable(varName);
+        if(var == null)
+            return reportError(ctx, "Unknown identifier " + varName);
         boolean arrayAssignment = (ctx.lvalue().expression() != null);
         Type b = var.getType().clone();
         
