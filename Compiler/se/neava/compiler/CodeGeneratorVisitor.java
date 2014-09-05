@@ -561,6 +561,14 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return methodSymbol.getReturnType();
     }
     
+    public Type visitStringExp(GravelParser.StringExpContext ctx)
+    {
+        String str = ctx.string().getText().replaceAll("\"", "");
+        String lbl = codeGenerator.addStringLiteral(str);
+        codeGenerator.emitProgramString("push " + lbl);
+        return new CharType(true);
+    }
+
     public Type externFunctionCall(GravelParser.FunctionCallContext ctx, MethodSymbol methodSymbol)
     {
         List<Type> arguments = methodSymbol.getArguments();

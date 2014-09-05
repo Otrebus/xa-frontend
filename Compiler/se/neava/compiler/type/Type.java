@@ -8,13 +8,13 @@ import se.neava.compiler.GravelParser.TypeContext;
 
 public abstract class Type implements Cloneable
 {
-    public static final int BOOL = 0;
+    /*public static final int BOOL = 0;
     public static final int CHAR = 1;
     public static final int INT = 2;
     public static final int LONG = 3;
     public static final int FUNCTIONPTR = 4;
     public static final int VOID = 5;
-    public static final int CLASS = 6;
+    public static final int CLASS = 6;*/
 
     public boolean isArray;
     int arrayLength;
@@ -95,6 +95,8 @@ public abstract class Type implements Cloneable
             return new BoolType(false);
         else if(typeStr.equals("void"))
             return new VoidType();
+        else if(typeStr.equals("bool"))
+            return new BoolType();
         return null;
     }
     

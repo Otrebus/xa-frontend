@@ -51,6 +51,7 @@ expression :
     'true' #trueExp |
     'false' #falseExp |
     NUM suffix #numExp |
+    string #stringExp |
     '(' baseType ')' expression #castExp |
     expression ('[' expression ']') #arrayLookupExp
     | identifier '.' identifier #indirectionExp

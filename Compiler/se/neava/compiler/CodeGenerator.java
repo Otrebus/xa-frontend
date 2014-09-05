@@ -12,11 +12,19 @@ public class CodeGenerator
     public boolean mute;
     int labelNo = 0;
     
+    public String addStringLiteral(String str)
+    {
+        String lbl = makeLabel(str);
+        emitDataLabel(lbl);
+        emitDataln("\"" + str + "\"");
+        return lbl;
+    }
+    
     public String makeLabel()
     {
         String lbl = "label" + labelNo++;
         if(labels.contains(lbl))
-            return makeLabel();
+            return makeLabel(); // A mischievous user could overflow the stack here
         return lbl;
     }
     
