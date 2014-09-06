@@ -1,4 +1,4 @@
-package se.neava.bytecodeuploader;
+package se.neava.communicator;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -8,16 +8,27 @@ import java.text.ParseException;
 
 import jssc.SerialPortException;
 import se.neava.Assembler.Assembler;
-import se.neava.bytecodeuploader.BytecodeUploader;
-import se.neava.bytecodeuploader.BytecodeUploader.BusyException;
-import se.neava.bytecodeuploader.BytecodeUploader.NoPortsFoundException;
+import se.neava.communicator.Communicator;
+import se.neava.communicator.Communicator.BusyException;
+import se.neava.communicator.Communicator.NoPortsFoundException;
 import se.neava.compiler.CompileException;
 import se.neava.compiler.Compiler;
 
-class UploadTestUi
+class CommunicationTester
 {
     public static void main(String[] args) 
     {
+        class MyEventHandler implements CommunicationEventHandler
+        {
+            public void handleEvent(CommunicationEvent e) {
+                if(e.getType() == CommunicationEvent.MESSAGE)
+                {
+                    for(byte b : e.getMessage())
+                        System.out.print((char) b);
+                }
+            }
+            
+        }
         String text = "";
         File file = new File("input.g");
         System.out.println(file.getAbsolutePath());
@@ -54,8 +65,10 @@ class UploadTestUi
         }
         try 
         { 
-            BytecodeUploader bu = new BytecodeUploader(null, 9600);
+            Communicator bu = new Communicator(null, 9600);
+            bu.setDebugOutput(true);
             bu.transmitCode(bytes, 5);
+            bu.setEventHandler(new MyEventHandler());
             while(true)
             {
                 BufferedReader buffer=new BufferedReader(new InputStreamReader(System.in));
