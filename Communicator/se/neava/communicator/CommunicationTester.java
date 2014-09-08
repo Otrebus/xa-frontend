@@ -16,6 +16,8 @@ import se.neava.compiler.Compiler;
 
 class CommunicationTester
 {
+    static Communicator bu;
+    
     public static void main(String[] args) 
     {
         class MyEventHandler implements CommunicationEventHandler
@@ -23,11 +25,21 @@ class CommunicationTester
             public void handleEvent(CommunicationEvent e) {
                 if(e.getType() == CommunicationEvent.MESSAGE)
                 {
+                    System.out.println("Received a message: ");
                     for(byte b : e.getMessage())
                         System.out.print((char) b);
                 }
+                else if(e.getType() == CommunicationEvent.RETRANSMITTED)
+                    System.out.print("r");
+                else if(e.getType() == CommunicationEvent.FINISHED_UPLOADING)
+                {
+                    System.out.println(" Finished uploading!");
+                }
+                else if(e.getType() == CommunicationEvent.GAVE_UP)
+                    System.out.println(" Gave up!");
+                else if(e.getType() == CommunicationEvent.GOT_ACK)
+                    System.out.print(".");
             }
-            
         }
         String text = "";
         File file = new File("input.g");
@@ -65,8 +77,8 @@ class CommunicationTester
         }
         try 
         { 
-            Communicator bu = new Communicator(null, 9600);
-            bu.setDebugOutput(true);
+            bu = new Communicator(null, 9600);
+            bu.setDebugOutput(false);
             bu.transmitCode(bytes, 5);
             bu.setEventHandler(new MyEventHandler());
             while(true)
@@ -74,7 +86,15 @@ class CommunicationTester
                 BufferedReader buffer=new BufferedReader(new InputStreamReader(System.in));
                 String line=buffer.readLine();
                 if(line.equals("RESET"))
+                {
                     bu.sendReset();
+                    continue;
+                }
+                if(line.equals("a"))
+                {
+                    bu.close();
+                    continue;
+                }
                 bu.transmitAppData(line.getBytes("UTF-8"));
             }
         } 
