@@ -11,49 +11,53 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Files;
 
-public class Assembler {
+public class Assembler 
+{
     
+    /**
+     * Constructor.
+     */
     public Assembler()
     {
     }
-
-    public static void main(String[] args) 
-    {
-        try
-        {
-            File file = new File("input.asm");
-            System.out.println(file.getAbsolutePath());
-            byte[] bytes = Files.readAllBytes(file.toPath());
-            String text = new String(bytes,"UTF-8");
-
-            new Assembler().assemble(text);
-        } 
-        catch (ParseException e) 
-        {
-            System.out.println("Parsing error: " + e.getMessage() + " (line " + e.getErrorOffset() + ")");
-            e.printStackTrace();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-    }
     
+    /**
+     * Returns true if the given line is all whitespace.
+     * @param line The string to check for whitespacedness.
+     * @return True if the line was all whitespace, false if not.
+     */
     private boolean isEmpty(String line)
     {
          return line.trim().length() == 0;
     }
 
+    /**
+     * Removes "--" and all subsequent characters from a string. If "--" is not a substring of the
+     * provided string, this does nothing.
+     * @param line Any string.
+     * @return The argument string after having undergone the transformation described above.
+     */
     private String removeComment(String line)
     {
         return line.split("--", 2)[0];
     }
     
+    /**
+     * Transforms the assembly code into byte code.
+     * @param str The assembly code, verbatim.
+     * @return A vector of bytes consisting of the corresponding byte code, if the program is
+     *         correct.
+     * @throws IOException Thrown if something went wrong in the I/O processing of the code.
+     * @throws ParseException Thrown if the program is not a correct assembly program.
+     */
     public byte[] assemble(String str) throws IOException, ParseException
     {
         BufferedReader rdr = new BufferedReader(new StringReader(str));
         List<String> strLines = new ArrayList<String>();
-        for (String line = rdr.readLine(); line != null; line = rdr.readLine()) {
+        
+        // Remove all comments and empty lines
+        for (String line = rdr.readLine(); line != null; line = rdr.readLine()) 
+        {
             line = removeComment(line);
             if(!isEmpty(line))
                 strLines.add(line);
@@ -63,6 +67,7 @@ public class Assembler {
         Program p = new Program();
         int lineNumber = 1;
         
+        // Go through each line from top to bottom and construct byte codes
         for(String line : strLines)
         {
             try
@@ -80,6 +85,8 @@ public class Assembler {
             }
             lineNumber++;
         }
+        
+        // Forward references need to be fixed after the above step
         p.fixErrata();
         System.out.println("-------------");
         System.out.println(p);

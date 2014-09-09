@@ -58,6 +58,7 @@ expression :
     | functionCall #functionCallExp
     | '(' expression ')' #parExp
     | expression '*' expression #mulExp
+    | expression '%' expression #modExp
     | expression '/' expression #divExp
     | expression '+' expression #addExp
     | expression '-' expression #subExp

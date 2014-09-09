@@ -737,6 +737,16 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return a;
     }
     
+    public Type visitModExp(GravelParser.ModExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type match error in mul");
+        codeGenerator.emitProgramString("mod " + a.getSizeStr());
+        return a;
+    }
+    
     public Type visitSubExp(GravelParser.SubExpContext ctx) 
     { 
         Type a = visit(ctx.expression(1));
