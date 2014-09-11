@@ -707,6 +707,51 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return new BoolType();
     }
     
+    @Override 
+    public Type visitBitOrExp(GravelParser.BitOrExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type mismatch");
+        codeGenerator.emitProgramString("or " + a.getSizeStr());
+        return a;
+    }
+    
+    @Override 
+    public Type visitBitAndExp(GravelParser.BitAndExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type mismatch");
+        codeGenerator.emitProgramString("and " + a.getSizeStr());
+        return a;
+    }
+    
+    @Override 
+    public Type visitXorExp(GravelParser.XorExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type mismatch");
+        codeGenerator.emitProgramString("xor " + a.getSizeStr());
+        return a;
+    }
+    
+    @Override
+    public Type visitNeqExp(GravelParser.NeqExpContext ctx) 
+    { 
+        Type a = visit(ctx.expression(1));
+        Type b = visit(ctx.expression(0));
+        if(!a.equals(b))
+            return reportError(ctx, "Type mismatch");
+        codeGenerator.emitProgramString("sub " + a.getSizeStr());
+        codeGenerator.emitProgramString("snez " + a.getSizeStr());
+        return new BoolType();
+    }
+    
     public Type visitDivExp(GravelParser.DivExpContext ctx) 
     { 
         Type a = visit(ctx.expression(1));

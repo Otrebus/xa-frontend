@@ -58,8 +58,8 @@ expression :
     | functionCall #functionCallExp
     | '(' expression ')' #parExp
     | expression '*' expression #mulExp
-    | expression '%' expression #modExp
     | expression '/' expression #divExp
+    | expression '%' expression #modExp
     | expression '+' expression #addExp
     | expression '-' expression #subExp
     | expression '>' expression #gtExp
@@ -67,6 +67,10 @@ expression :
     | expression '<=' expression #lteExp
     | expression '<' expression #ltExp
     | expression '==' expression #eqExp
+    | expression '!=' expression #neqExp
+    | expression '&' expression #bitAndExp
+    | expression '^' expression #xorExp
+    | expression '|' expression #bitOrExp
     | expression '&&' expression #logAndExp
     | expression '||' expression #logOrExp ;
 
