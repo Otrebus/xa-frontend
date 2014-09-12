@@ -57,6 +57,7 @@ expression :
     | identifier '.' identifier #indirectionExp
     | functionCall #functionCallExp
     | '(' expression ')' #parExp
+    | '!' expression #notExp
     | expression '*' expression #mulExp
     | expression '/' expression #divExp
     | expression '%' expression #modExp

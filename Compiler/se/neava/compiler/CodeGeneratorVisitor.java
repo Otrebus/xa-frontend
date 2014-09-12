@@ -801,6 +801,15 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         codeGenerator.emitProgramString("sub " + a.getSizeStr());
         return a;
     }
+    @Override
+    public Type visitNotExp(GravelParser.NotExpContext ctx)
+    {
+        Type a = visit(ctx.expression());
+        if(!(a instanceof BoolType))
+            return reportError(ctx, "Expression in negation must be of type bool");
+        codeGenerator.emitProgramString("sez");
+        return a;
+    }
     
     public Type visitIfStatement(GravelParser.IfStatementContext ctx) 
     { 
