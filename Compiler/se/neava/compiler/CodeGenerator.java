@@ -14,7 +14,7 @@ public class CodeGenerator
     
     public String addStringLiteral(String str)
     {
-        String lbl = makeLabel(str);
+        String lbl = makeLabel(str.replace(' ', '_'));
         emitDataLabel(lbl);
         emitDataln("\"" + str + "\"");
         return lbl;
@@ -25,6 +25,7 @@ public class CodeGenerator
         String lbl = "label" + labelNo++;
         if(labels.contains(lbl))
             return makeLabel(); // A mischievous user could overflow the stack here
+        labels.add(lbl);
         return lbl;
     }
     
@@ -92,6 +93,7 @@ public class CodeGenerator
         String str = suggestion;
         for(int n = 2; labels.contains(str); n++)
             str = suggestion + n;
+        labels.add(str);
         return str;
     }
     

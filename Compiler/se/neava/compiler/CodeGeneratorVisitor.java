@@ -807,7 +807,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type a = visit(ctx.expression());
         if(!(a instanceof BoolType))
             return reportError(ctx, "Expression in negation must be of type bool");
-        codeGenerator.emitProgramString("sez");
+        codeGenerator.emitProgramString("sez byte");
         return a;
     }
     

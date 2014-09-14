@@ -329,9 +329,9 @@ public class Communicator
      */
     private void handleAppFrame()
     {
-        byte[] bytes = new byte[recvBuf.size()];
-        for(int i = 0; i < recvBuf.size(); i++)
-            bytes[i] = recvBuf.elementAt(i).byteValue();
+        byte[] bytes = new byte[recvBuf.size()-1];
+        for(int i = 1; i < recvBuf.size(); i++)
+            bytes[i-1] = recvBuf.elementAt(i).byteValue();
         handleEvent(new CommunicationEvent(bytes));
     }
 
