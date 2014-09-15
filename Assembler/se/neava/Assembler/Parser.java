@@ -1,8 +1,10 @@
 package se.neava.Assembler;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
+
 import se.neava.Assembler.instruction.*;
 
 public class Parser 
@@ -549,12 +551,30 @@ public class Parser
         if(tok != null)
         {
             tok = lexer.expect(Token.Type.NUMBER);
-            int i = parseNum(tok.str);
+            int arrayLength = parseNum(tok.str);
             lexer.expect(Token.Type.CLOSEBRACKET);
-            lexer.expect(Token.Type.END);
-            if(!size.equals("byte"))
-                throw new ParseException("data arrays must be of type byte!", 0);
-            return new Data(i);
+            ArrayList<Integer> data = new ArrayList<Integer>();        
+            do
+            {
+                tok = lexer.accept(Token.Type.NUMBER);
+                if(tok != null)
+                    data.add(Integer.parseInt(tok.str));
+            } 
+            while(tok != null);
+            
+            if(data.size() > 0)
+            {
+                if(data.size() != arrayLength)
+                    throw new ParseException("Initializer length mismatch: needed " + arrayLength + ", got " + data.size(), 0);
+                
+                tok = lexer.expect(Token.Type.END);
+                
+                int[] array = new int[arrayLength];
+                for(int i = 0; i < array.length; i++)
+                    array[i] = data.get(i);
+                return new Data(size, array);
+            }
+            return new Data(size, new int[arrayLength]);
         }
         tok = lexer.expect(Token.Type.NUMBER);        
         int i = Integer.parseInt(tok.str);

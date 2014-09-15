@@ -18,7 +18,11 @@ classDefinition : classType identifier '{' classVariableDeclaration* methodDefin
 
 classType : 'object' | 'class' ;
 
-classVariableDeclaration : type identifier ';' ;
+classVariableDeclaration : type identifier ('=' (scalarInitializer | arrayInitializer))? ';' ;
+
+scalarInitializer : NUM suffix;
+
+arrayInitializer : '{' NUM suffix (',' NUM suffix)* '}' ;
 
 methodDefinition : type identifier '(' (type identifier (',' type identifier )*)? ')' '{' methodBody '}' ; 
 

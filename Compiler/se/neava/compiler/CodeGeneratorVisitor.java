@@ -230,15 +230,9 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
     public Type visitNumExp(GravelParser.NumExpContext ctx) 
     { 
         String s = ctx.suffix().getText();
-        Type type;
-        if(s.equals("c"))
-            type = new CharType(false);
-        else if(s.equals("i"))
-            type = new IntType(false);
-        else if(s.equals("l"))
-            type = new LongType(false);
-        else
-            return reportError(ctx, "Unknown number suffix");
+        Type type = Type.getTypeFromSuffix(s);
+        if(type == null)
+            reportError(ctx, "Unknown number suffix");
         codeGenerator.emitProgramString("push " + type.getSizeStr() + " " + Integer.parseInt(ctx.NUM().getText()));
         return type; 
     }

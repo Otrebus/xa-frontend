@@ -1,6 +1,7 @@
 package se.neava.Assembler;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 
 import se.neava.Assembler.Statement;
 
@@ -29,12 +30,22 @@ public class Data implements Statement {
         code = new byte[Parser.getSize(strSize)];
         str = strSize;
     }
-    
 
-    public Data(int i) 
+    public Data(String strSize, int[] array) throws ParseException 
     {
-        code = new byte[i];
-        str = "byte[" + i + "]";
+        int size = Parser.getSize(strSize);
+        ArrayList<Byte> listCode = new ArrayList<Byte>();
+        for(int i = 0; i < array.length; i++)
+        {
+            for(int j = 0; j < size; j++)
+                listCode.add((byte)((array[i] >>> j*8) & 0xFF));
+        }
+        code = new byte[listCode.size()];
+        for(int i = 0; i < listCode.size(); i++)
+            code[i] = listCode.get(i);
+        str = strSize + "[" + array.length + "] ";
+        for(int i = 0; i < array.length; i++)
+            strSize += array[i] + " ";
     }
 
     public byte[] getCode() 

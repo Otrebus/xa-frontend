@@ -143,4 +143,18 @@ public abstract class Type implements Cloneable
     public abstract boolean castTo(CodeGenerator gen, Type type);    
     public abstract boolean isAssignableFrom(Type type);
     public abstract Type clone();
+
+    public static Type getTypeFromSuffix(String s) 
+    {
+        Type type;
+        if(s.equals("c"))
+            type = new CharType(false);
+        else if(s.equals("i"))
+            type = new IntType(false);
+        else if(s.equals("l"))
+            type = new LongType(false);
+        else
+            return null;
+        return type;
+    }
 }

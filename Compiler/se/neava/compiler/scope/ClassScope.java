@@ -13,6 +13,7 @@ import se.neava.compiler.symbol.ClassVariableSymbol;
 import se.neava.compiler.symbol.MethodSymbol;
 import se.neava.compiler.symbol.ObjectVariableSymbol;
 import se.neava.compiler.symbol.VariableSymbol;
+import se.neava.compiler.type.Type;
 
 public class ClassScope implements Scope 
 {
@@ -50,11 +51,48 @@ public class ClassScope implements Scope
             gen.emitDataln("dword 0");
             for(ClassVariableDeclarationContext c : ctx.classVariableDeclaration())
             {
-                String label = gen.makeLabel(className + "_" + c.identifier().getText());;
+                String label = gen.makeLabel(className + "_" + c.identifier().getText());
                 ObjectVariableSymbol objectVariableSymbol = new ObjectVariableSymbol(c, label);
                 gen.emitDataLabel(label);
-                gen.emitDataln("byte[" + objectVariableSymbol.getType().getMemorySize() + "]");
+                //gen.emitDataln("byte[" + objectVariableSymbol.getType().getMemorySize() + "]");
+                //String dataln = "byte[" + type.getMemorySize() + "] ";
+                String dataln = null;
+                Type type = objectVariableSymbol.getType();
+                if(!type.isArray())
+                    dataln = type.getSizeStr() + " ";
+                else if(type.isPointer())
+                    dataln = "word ";
+                else if(type.isArray())
+                    dataln = type.getElementSizeStr() + "[" + type.getArrayLength() + "] ";
                 variableSymbols.add(objectVariableSymbol);
+                if(c.scalarInitializer() != null)
+                {
+                    if(type.isArray())
+                        throw new CompileException("Cannot initialize array " + objectVariableSymbol.getName() + " with scalar.");
+                    String ns = c.scalarInitializer().NUM().getText();
+                    String suf = c.scalarInitializer().suffix().getText();
+                    Type t = Type.getTypeFromSuffix(suf);
+                    if(!t.equals(type))
+                        throw new CompileException("Type mismatch when initializing " + objectVariableSymbol.getName() + ".");
+                    dataln += ns;
+                }
+                else if(c.arrayInitializer() != null)
+                {
+                    if(!type.isArray())
+                        throw new CompileException("Cannot initialize scalar " + objectVariableSymbol.getName() + " with array.");
+                    for(int i = 0; i < c.arrayInitializer().NUM().size(); i++)
+                    {
+                        String ns = c.arrayInitializer().NUM(i).getText();
+                        String suf = c.arrayInitializer().suffix(i).getText();
+                        Type t = Type.getTypeFromSuffix(suf);
+                        Type b = type.clone();
+                        b.isArray = false;
+                        if(!t.equals(b))
+                            throw new CompileException("Type mismatch when initializing " + objectVariableSymbol.getName() + ".");
+                        dataln += ns + " ";
+                    }
+                }
+                gen.emitDataln(dataln);
             }            
         }
         else

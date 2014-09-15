@@ -459,6 +459,7 @@ public class Communicator
      */
     private void startTimeout()
     {
+        codeTimeoutTimer = new Timer();
         codeTimeoutTask = 
         new TimerTask() 
         { 
