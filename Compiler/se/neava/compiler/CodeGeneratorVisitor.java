@@ -322,20 +322,13 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         
         // Last push is "this", but this is repeated due to the requirements of async
         // TODO: make this stuff less retarded?
-        if(classInstanceSymbol == null)
+        if(classInstanceSymbol == null) 
         {
             if(!((ClassScope) currentScope.getParent()).isObject())
                 codeGenerator.emitProgramString("push word [$fp+4]");
-            else
-                codeGenerator.emitProgramString("push " + ((ClassScope) currentScope.getParent()).getLabel());
         }
-        else
-        {
-            if(!classInstanceSymbol.getClassScope().isObject())
-                codeGenerator.emitProgramString("push word [$fp+4]");
-            else
-                codeGenerator.emitProgramString("push " + (classInstanceSymbol.getClassScope().getLabel()));
-        }
+        else if(((ClassScope)classInstanceSymbol.getClassScope()).isObject())
+            codeGenerator.emitProgramString("push " + (classInstanceSymbol.getClassScope().getLabel()));
         
         codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
         
@@ -347,12 +340,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                 codeGenerator.emitProgramString("push " + ((ClassScope) currentScope.getParent()).getLabel());
         }
         else
-        {
-            if(!classInstanceSymbol.getClassScope().isObject())
-                codeGenerator.emitProgramString("push word [$fp+4]");
-            else
-                codeGenerator.emitProgramString("push " + (classInstanceSymbol.getClassScope().getLabel()));
-        }
+            codeGenerator.emitProgramString("push " + (classInstanceSymbol.getClassScope().getLabel()));
         
         if(ctx.after() != null)
         {
