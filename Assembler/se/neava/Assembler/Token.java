@@ -1,7 +1,11 @@
 package se.neava.Assembler;
 
-public class Token {
-    
+/**
+ * Class representing a lexer token.
+ */
+public class Token 
+{
+    // Regexes for the various tokens
     public static enum Type 
     {
         STRING("\\\".*\\\""),
@@ -20,7 +24,8 @@ public class Token {
         
         public final String pattern;
 
-        private Type(String pattern) {
+        private Type(String pattern) 
+        {
             this.pattern = pattern;
         }
     }
@@ -28,17 +33,30 @@ public class Token {
     String str;
     Type type;
     
+    /**
+     * Constructor
+     * @param type The type of this token.
+     * @param str The string that generated this token.
+     */
     public Token(Type type, String str)
     {
         this.type = type;
         this.str = str;
     }
     
+    /**
+     * Returns a string representation of this token (for debugging, etc).
+     */
     public String toString()
     {
         return "(" + type.name() + ", " + str + ")";
     }
     
+    /**
+     * Returns true if this token is exactly equal to the argument.
+     * @param tok The token to check for equality.
+     * @return True if equal, false if not.
+     */
     boolean equals(Token tok)
     {
         return type == tok.type && str.equals(tok.str);

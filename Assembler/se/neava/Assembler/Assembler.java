@@ -13,12 +13,21 @@ import java.nio.file.Files;
 
 public class Assembler 
 {
-    
+    private boolean debugOutput = false;
     /**
      * Constructor.
      */
     public Assembler()
     {
+    }
+    
+    /**
+     * Enables or disables debug output to stdout. This is disabled by default.
+     * @param mode True to enable, false to disable.
+     */
+    public void setDebugOutput(boolean mode)
+    {
+        debugOutput = mode;
     }
     
     /**
@@ -88,9 +97,13 @@ public class Assembler
         
         // Forward references need to be fixed after the above step
         p.fixErrata();
-        System.out.println("-------------");
-        System.out.println(p);
-        System.out.println(Program.bytesToString(p.getCode()));
+        
+        if(debugOutput)
+        {
+            System.out.println("-------------");
+            System.out.println(p);
+            System.out.println(Program.bytesToString(p.getCode()));
+        }
         return p.getCode();
     }
 }

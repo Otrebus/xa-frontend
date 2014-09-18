@@ -4,6 +4,9 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
+/*
+ * Class representing the Sgz instruction.
+ */
 public class Sgz implements Instruction 
 {
     String str;

@@ -4,6 +4,9 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
+/*
+ * Class representing the Snez instruction.
+ */
 public class Snez implements Instruction 
 {
     String str;

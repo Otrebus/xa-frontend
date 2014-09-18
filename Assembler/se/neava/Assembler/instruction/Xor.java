@@ -4,7 +4,11 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
-public class Xor implements Instruction {
+/*
+ * Class representing the Xor instruction.
+ */
+public class Xor implements Instruction 
+{
     String str;
     byte[] code;
     

@@ -7,12 +7,16 @@ import java.util.TreeMap;
 
 import se.neava.Assembler.instruction.*;
 
+/**
+ * Class responsible for parsing a set of lexemes to a string of bytes.
+ */
 public class Parser 
 {
-    Lexer lexer;
-    Token currentToken;
+    Lexer lexer;        // The lexer for this string
     
-    private static final Map<String, InstructionParser> parseMap = new TreeMap<String, InstructionParser>();
+    // Maps each instruction mnemonic to its parser
+    private static final Map<String, InstructionParser> parseMap 
+        = new TreeMap<String, InstructionParser>();
     static 
     {
         parseMap.put("push", new PushParser());
@@ -44,51 +48,66 @@ public class Parser
         parseMap.put("srav", new SravParser());
     }
     
+    /**
+     * Returns the least significant 8 bits of a number (bits 0..7).
+     * @param x An integer.
+     * @return the least significant 8 bits of a number.
+     */
     static public byte low8(int x)
     {
         return (byte) (x & 0xFF);
     }
     
+    /**
+     * Returns bits 8..15 of a number.
+     * @param x An integer.
+     * @return bits 8..15 of the given integer.
+     */
     static public byte high8(int x)
     {
         return (byte) ((x >>> 8) & 0xFF);
     }
     
+    /**
+     * Returns bits 16..23 of a number.
+     * @param x An integer.
+     * @return bits 16..23 of the given integer.
+     */
     static public byte higher8(int x)
     {
         return (byte) ((x >>> 16) & 0xFF);
     }
     
+    /**
+     * Returns bits 24..31 of a number.
+     * @param x An integer.
+     * @return bits 24..31 of the given integer.
+     */
     static public byte highest8(int x)
     {
         return (byte) ((x >>> 24) & 0xFF);
     }
     
-    private static int parseNum(String num)
-    {
-        int imm = 0;
-        try
-        {
-            imm = Integer.parseInt(num);
-        }
-        catch(NumberFormatException e)
-        {
-            imm = Integer.decode(num);
-        }
-        return imm;
-    }
-    
-    static int num(Lexer lexer) throws ParseException
+    /**
+     * Attempts to match the next token to a number.
+     * @param lexer The lexer supplying the tokens.
+     * @return The matched integer.
+     * @throws ParseException
+     */
+    private static int num(Lexer lexer) throws ParseException
     {
         String op = "";
         Token tok = lexer.accept(Token.Type.OPERATOR);
         if(tok != null)
             op = tok.str;
         tok = lexer.expect(Token.Type.NUMBER);
-        return parseNum(op + tok.str);
+        return Integer.decode(op + tok.str);
     }
     
-    static class Mem
+    /**
+     * Represents a memory location.
+     */
+    private static class Mem
     {
         boolean fp;
         String value;
@@ -99,6 +118,12 @@ public class Parser
         }
     }
     
+    /**
+     * Parses a string representing a memory location like [$fp+1] or [label]
+     * @param lexer The lexer supplying the tokens.
+     * @return A mem object representing the memory location.
+     * @throws ParseException
+     */
     private static Mem mem(Lexer lexer) throws ParseException
     {
         Token tok = lexer.accept(Token.Type.FRAMEPOINTER);
@@ -117,11 +142,17 @@ public class Parser
         return new Mem(false, tok.str);
     }
     
+    /**
+     * The instruction parser interface which is instantiated for every instruction.
+     */
     private interface InstructionParser
     {
         Instruction parseInstruction(Lexer lexer) throws ParseException;
     }
     
+    /**
+     * Instruction parser for the Sll instruction.
+     */
     private static class SllParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -129,12 +160,15 @@ public class Parser
             Token tok = lexer.expect(Token.Type.SIZE);
             int size = getSize(tok.str);
             tok = lexer.expect(Token.Type.NUMBER);
-            int imm = parseNum(tok.str);
+            int imm = Integer.decode(tok.str);
             lexer.expect(Token.Type.END);
             return new Sll(size, imm); 
         }
     }
     
+    /**
+     * Instruction parser for the Srl instruction.
+     */
     private static class SrlParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -142,12 +176,15 @@ public class Parser
             Token tok = lexer.expect(Token.Type.SIZE);
             int size = getSize(tok.str);
             tok = lexer.expect(Token.Type.NUMBER);
-            int imm = parseNum(tok.str);
+            int imm = Integer.decode(tok.str);
             lexer.expect(Token.Type.END);
             return new Srl(size, imm); 
         }
     }
     
+    /**
+     * Instruction parser for the Sra instruction.
+     */
     private static class SraParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -155,12 +192,15 @@ public class Parser
             Token tok = lexer.expect(Token.Type.SIZE);
             int size = getSize(tok.str);
             tok = lexer.expect(Token.Type.NUMBER);
-            int imm = parseNum(tok.str);
+            int imm = Integer.decode(tok.str);
             lexer.expect(Token.Type.END);
             return new Sra(size, imm); 
         }
     }
     
+    /**
+     * Instruction parser for the Sllv instruction.
+     */    
     private static class SllvParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -172,6 +212,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Srlv instruction.
+     */
     private static class SrlvParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -183,6 +226,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Srav instruction.
+     */
     private static class SravParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -194,6 +240,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Jmp instruction.
+     */
     private static class JmpParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -205,6 +254,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Sgz instruction.
+     */
     private static class SgzParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -216,6 +268,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Sgez instruction.
+     */
     private static class SgezParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -227,6 +282,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Sez instruction.
+     */
     private static class SezParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -238,6 +296,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Snez instruction.
+     */
     private static class SnezParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -249,6 +310,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Add instruction.
+     */
     private static class AddParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -260,6 +324,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Sub instruction.
+     */
     private static class SubParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -271,6 +338,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Mul instruction.
+     */
     private static class MulParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -281,7 +351,10 @@ public class Parser
             return new Mul(size);
         }
     }
-        
+    
+    /**
+     * Instruction parser for the Div instruction.
+     */
     private static class DivParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -293,6 +366,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Mod instruction.
+     */
     private static class ModParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -304,6 +380,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the And instruction.
+     */
     private static class AndParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -315,6 +394,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Or instruction.
+     */
     private static class OrParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -326,6 +408,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Xor instruction.
+     */
     private static class XorParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -337,6 +422,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Push instruction.
+     */
     private static class PushParser implements InstructionParser
     {
         Lexer lexer;
@@ -349,13 +437,13 @@ public class Parser
             if(tok != null)
             {
                 lexer.expect(Token.Type.END);
-                int imm = parseNum(tok.str);
+                int imm = Integer.decode(tok.str);
                 return new Push(false, imm);
             }
             Mem m = mem(lexer);
             lexer.expect(Token.Type.END);
             if(m.fp)
-                return new Push(true, parseNum(m.value));
+                return new Push(true, Integer.decode(m.value));
             else
                 return new Push(m.value);
         }
@@ -370,7 +458,7 @@ public class Parser
             if(tok != null)
             {
                 lexer.expect(Token.Type.END);
-                return new Push(getSize(size), false, parseNum(tok.str));
+                return new Push(getSize(size), false, Integer.decode(tok.str));
             }
             tok = lexer.accept(Token.Type.OPERATOR);
             if(tok != null)
@@ -378,14 +466,14 @@ public class Parser
                 String op = tok.str;
                 tok = lexer.expect(Token.Type.NUMBER);
                 lexer.expect(Token.Type.END);
-                return new Push(getSize(size), false, parseNum(op + tok.str));
+                return new Push(getSize(size), false, Integer.decode(op + tok.str));
             }
             lexer.expect(Token.Type.OPENBRACKET);
             Mem m = mem(lexer);
             lexer.expect(Token.Type.CLOSEBRACKET);
             lexer.expect(Token.Type.END);
             if(m.fp)
-                return new Push(getSize(size), m.fp, parseNum(m.value));
+                return new Push(getSize(size), m.fp, Integer.decode(m.value));
             else
                 return new Push(getSize(size), m.value);
         }
@@ -404,9 +492,11 @@ public class Parser
             this.lexer = lexer;
             return pushBody();
         }
-        
     }
     
+    /**
+     * Instruction parser for the Pop instruction.
+     */
     private static class PopParser implements InstructionParser
     {
         Lexer lexer;
@@ -414,7 +504,6 @@ public class Parser
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
         {
             this.lexer = lexer;
-            // TODO Auto-generated method stub
             return popBody();
         }
 
@@ -427,8 +516,8 @@ public class Parser
             return unsizedPop();
         }
         
-        private Instruction sizedPop(String size) throws ParseException {
-            // TODO Auto-generated method stub
+        private Instruction sizedPop(String size) throws ParseException 
+        {
             Token tok = lexer.accept(Token.Type.OPENBRACKET);
             if(tok == null)
             {
@@ -439,7 +528,7 @@ public class Parser
             lexer.expect(Token.Type.CLOSEBRACKET);
             lexer.expect(Token.Type.END);
             if(m.fp)
-                return new Pop(getSize(size), parseNum(m.value));
+                return new Pop(getSize(size), Integer.decode(m.value));
             else
                 return new Pop(getSize(size), m.value);
         }
@@ -452,6 +541,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Call instruction.
+     */
     private static class CallParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -462,16 +554,22 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Ret instruction.
+     */
     private static class RetParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
         {
             Token tok = lexer.expect(Token.Type.NUMBER);
             lexer.expect(Token.Type.END);
-            return new Ret(Parser.parseNum(tok.str));
+            return new Ret(Integer.decode(tok.str));
         }
     }
     
+    /**
+     * Instruction parser for the Async instruction.
+     */
     private static class AsyncParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -481,6 +579,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Sync instruction.
+     */
     private static class SyncParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -490,6 +591,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Jez instruction.
+     */
     private static class JezParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -501,6 +605,9 @@ public class Parser
         }
     }
     
+    /**
+     * Instruction parser for the Jnez instruction.
+     */
     private static class JnezParser implements InstructionParser
     {
         public Instruction parseInstruction(Lexer lexer) throws ParseException 
@@ -512,6 +619,12 @@ public class Parser
         }
     }
     
+    /**
+     * Transforms a data size string to its corresponding byte length.
+     * @param str A string in the set {"byte", "word", "dword"}.
+     * @return The length of the given size, in number of bytes.
+     * @throws ParseException
+     */
     static int getSize(String str) throws ParseException
     {
         if(str.equals("byte"))
@@ -523,24 +636,46 @@ public class Parser
         throw new ParseException("bad size", 0);
     }
     
+    /**
+     * Constructs a parser for the given lexer.
+     * @param lexer A given lexer for an instruction.
+     */
     public Parser(Lexer lexer)
     {
         this.lexer = lexer;
     }
     
-    private Statement section(String str) throws ParseException
+    /**
+     * Parses a directive statement, like ".code"
+     * @param str The directive statement.
+     * @return The directive object corresponding to this directive.
+     * @throws ParseException
+     */
+    private Statement directive(String str) throws ParseException
     {
         String name = str.substring(1);
         lexer.expect(Token.Type.END);
         return new Directive(name);
     }
     
+    /**
+     * Parses a string to its corresponding statement object.
+     * @param str The string to parse.
+     * @return the corresponding statement object of the given string.
+     * @throws ParseException
+     */
     private Statement string(String str) throws ParseException
     {
         lexer.expect(Token.Type.END);        
         return new DataString(str.substring(1, str.length() - 1));
     }
     
+    /**
+     * Parses a data declaration to its representing statement object.
+     * @param size The data size mnemonic (the first word of the string)
+     * @return The statement object representing this line of data allocation.
+     * @throws ParseException
+     */
     private Statement data(String size) throws ParseException
     {
         Token tok;
@@ -551,7 +686,7 @@ public class Parser
         if(tok != null)
         {
             tok = lexer.expect(Token.Type.NUMBER);
-            int arrayLength = parseNum(tok.str);
+            int arrayLength = Integer.decode(tok.str);
             lexer.expect(Token.Type.CLOSEBRACKET);
             ArrayList<Integer> data = new ArrayList<Integer>();        
             do
@@ -565,7 +700,8 @@ public class Parser
             if(data.size() > 0)
             {
                 if(data.size() != arrayLength)
-                    throw new ParseException("Initializer length mismatch: needed " + arrayLength + ", got " + data.size(), 0);
+                    throw new ParseException("Initializer length mismatch: needed " 
+                                             + arrayLength + ", got " + data.size(), 0);
                 
                 tok = lexer.expect(Token.Type.END);
                 
@@ -578,23 +714,33 @@ public class Parser
         }
         tok = lexer.expect(Token.Type.NUMBER);        
         int i = Integer.parseInt(tok.str);
-        // TODO: Actually fill in data
         lexer.expect(Token.Type.END);
         return new Data(size, i);
     }
     
+    /**
+     * Parses a label statement, like "blah:"
+     * @param str The label statement.
+     * @return The label object corresponding to this label.
+     * @throws ParseException
+     */
     private Statement label(String str) throws ParseException
     {
         lexer.expect(Token.Type.END);
         return new Label(str.substring(0, str.length() - 1));
     }
     
+    /**
+     * Parses this line of lexemes.
+     * @return The statement corresponding to this line.
+     * @throws ParseException
+     */
     Statement parse() throws ParseException
     {
         Token tok;
         tok = lexer.accept(Token.Type.SECTION);
         if(tok != null)
-            return section(tok.str);
+            return directive(tok.str);
         tok = lexer.accept(Token.Type.SIZE);
         if(tok != null)
             return data(tok.str);

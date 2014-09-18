@@ -4,7 +4,11 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
-public class Mod implements Instruction {
+/*
+ * Class representing the Mod instruction.
+ */
+public class Mod implements Instruction 
+{
     String str;
     byte[] code;
     

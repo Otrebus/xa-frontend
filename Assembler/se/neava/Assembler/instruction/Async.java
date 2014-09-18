@@ -4,7 +4,11 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
-public class Async implements Instruction {
+/*
+ * Class representing the Async instruction.
+ */
+public class Async implements Instruction 
+{
     byte[] code;
     
     public void addToProgram(Program p) throws ParseException 

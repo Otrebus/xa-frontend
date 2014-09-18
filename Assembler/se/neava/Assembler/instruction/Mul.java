@@ -4,7 +4,11 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
-public class Mul implements Instruction {
+/*
+ * Class representing the Mul instruction.
+ */
+public class Mul implements Instruction 
+{
     String str;
     byte[] code;
     

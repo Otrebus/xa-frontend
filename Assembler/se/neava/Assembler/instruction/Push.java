@@ -3,6 +3,9 @@ package se.neava.Assembler.instruction;
 import se.neava.Assembler.Parser;
 import se.neava.Assembler.Program;
 
+/*
+ * Class representing the Push instruction.
+ */
 public class Push implements Instruction 
 {
     int size = -1;

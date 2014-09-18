@@ -5,6 +5,9 @@ import java.text.ParseException;
 import se.neava.Assembler.Parser;
 import se.neava.Assembler.Program;
 
+/*
+ * Class representing the Jez instruction.
+ */
 public class Jez implements Instruction 
 {
     String str;

@@ -3,6 +3,9 @@ package se.neava.Assembler.instruction;
 import se.neava.Assembler.Parser;
 import se.neava.Assembler.Program;
 
+/*
+ * Class representing the Sra instruction.
+ */
 public class Sra implements Instruction 
 {
     int size = -1;

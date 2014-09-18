@@ -5,7 +5,11 @@ import java.text.ParseException;
 import se.neava.Assembler.Parser;
 import se.neava.Assembler.Program;
 
-public class Jmp implements Instruction {
+/*
+ * Class representing the Jmp instruction.
+ */
+public class Jmp implements Instruction 
+{
     String str;
     byte[] code;
     String label;

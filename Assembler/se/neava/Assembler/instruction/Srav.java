@@ -2,6 +2,9 @@ package se.neava.Assembler.instruction;
 
 import se.neava.Assembler.Program;
 
+/*
+ * Class representing the Srav instruction.
+ */
 public class Srav implements Instruction 
 {
     int size = -1;

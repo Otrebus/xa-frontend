@@ -3,6 +3,9 @@ package se.neava.Assembler.instruction;
 import se.neava.Assembler.Parser;
 import se.neava.Assembler.Program;
 
+/*
+ * Class representing the Sll instruction.
+ */
 public class Sll implements Instruction 
 {
     int size = -1;

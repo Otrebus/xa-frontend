@@ -5,7 +5,11 @@ import java.text.ParseException;
 import se.neava.Assembler.Parser;
 import se.neava.Assembler.Program;
 
-public class Pop implements Instruction {
+/*
+ * Class representing the Pop instruction.
+ */
+public class Pop implements Instruction 
+{
     int size = -1;
     String label = "";
     byte[] code;

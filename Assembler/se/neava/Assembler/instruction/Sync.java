@@ -4,7 +4,11 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
-public class Sync implements Instruction {
+/*
+ * Class representing the Sync instruction.
+ */
+public class Sync implements Instruction 
+{
     byte[] code;
     
     public void addToProgram(Program p) throws ParseException 

@@ -5,6 +5,9 @@ import java.text.ParseException;
 import se.neava.Assembler.Parser;
 import se.neava.Assembler.Program;
 
+/*
+ * Class representing the Ret instruction.
+ */
 public class Ret implements Instruction 
 {
     byte[] code;
