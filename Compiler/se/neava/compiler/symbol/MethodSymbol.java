@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.antlr.v4.runtime.RuleContext;
 
-import se.neava.compiler.CodeGenerator;
+import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.GravelParser.ClassDefinitionContext;
 import se.neava.compiler.GravelParser.ExternDeclarationContext;
@@ -79,24 +79,24 @@ public class MethodSymbol extends Symbol
         return label;
     }
 
-    public void emitArrayLoad(CodeGenerator codeGenerator) {
+    public void emitArrayLoad(CodeGeneratorVisitor codeGenerator) {
         // TODO Auto-generated method stub
         
     }
 
-    public void emitArrayStore(CodeGenerator codeGenerator) {
-        // TODO Auto-generated method stub
-        
-    }
-
-    @Override
-    public void emitLoad(CodeGenerator codeGenerator) {
+    public void emitArrayStore(CodeGeneratorVisitor codeGenerator) {
         // TODO Auto-generated method stub
         
     }
 
     @Override
-    public void emitStore(CodeGenerator codeGenerator) {
+    public void emitLoad(CodeGeneratorVisitor codeGenerator) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void emitStore(CodeGeneratorVisitor codeGenerator) {
         // TODO Auto-generated method stub
         
     }

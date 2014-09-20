@@ -5,7 +5,11 @@ import java.text.ParseException;
 import se.neava.Assembler.Parser;
 import se.neava.Assembler.Program;
 
-public class Call implements Instruction {
+/*
+ * Class representing the Call instruction.
+ */
+public class Call implements Instruction 
+{
     String label = "";
     byte[] code;
     String str;

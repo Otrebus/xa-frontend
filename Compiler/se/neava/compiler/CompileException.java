@@ -13,5 +13,4 @@ public class CompileException extends Exception {
     {
         return what;
     }
-
 }

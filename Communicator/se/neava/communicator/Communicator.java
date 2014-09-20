@@ -135,6 +135,7 @@ public class Communicator
         if(code.length > (1 << 15))
             throw new IllegalArgumentException("Code is too long.");
     
+        sendPtr = 0;
         this.code = code.clone();
         this.chunkSize = Math.min(chunkSize, code.length);
         ByteBuffer buffer = ByteBuffer.allocate(chunkSize + 9);

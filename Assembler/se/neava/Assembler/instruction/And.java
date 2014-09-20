@@ -4,7 +4,11 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
-public class And implements Instruction {
+/*
+ * Class representing the And instruction.
+ */
+public class And implements Instruction 
+{
     String str;
     byte[] code;
     

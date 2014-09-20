@@ -25,7 +25,7 @@ public class MethodScope implements Scope
     
     public MethodScope(ClassScope parent, MethodDefinitionContext ctx) throws CompileException 
     {
-        if(!parent.isObject())
+        if(!parent.isSingleton())
             argumentVariableSize = 2;
         this.parent = parent;
         returnType = Type.createType(ctx.type(0));

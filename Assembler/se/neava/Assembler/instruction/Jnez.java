@@ -6,7 +6,7 @@ import se.neava.Assembler.Parser;
 import se.neava.Assembler.Program;
 
 /*
- * Class representing the Jmp instruction.
+ * Class representing the Jnez instruction.
  */
 public class Jnez implements Instruction 
 {

@@ -4,7 +4,12 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
-public class Or implements Instruction {
+
+/*
+ * Class representing the Or instruction.
+ */
+public class Or implements Instruction 
+{
     String str;
     byte[] code;
     

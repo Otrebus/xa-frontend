@@ -1,6 +1,6 @@
 package se.neava.compiler.symbol;
 
-import se.neava.compiler.CodeGenerator;
+import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.scope.ClassScope;
 import se.neava.compiler.type.Type;
@@ -32,7 +32,7 @@ public class ClassInstanceSymbol extends Symbol
     }
 
     @Override
-    public void emitArrayLoad(CodeGenerator codeGenerator) {
+    public void emitArrayLoad(CodeGeneratorVisitor codeGenerator) {
         // TODO Auto-generated method stub
         
     }
@@ -40,7 +40,7 @@ public class ClassInstanceSymbol extends Symbol
 
 
     @Override
-    public void emitArrayStore(CodeGenerator codeGenerator) {
+    public void emitArrayStore(CodeGeneratorVisitor codeGenerator) {
         // TODO Auto-generated method stub
         
     }
@@ -48,7 +48,7 @@ public class ClassInstanceSymbol extends Symbol
 
 
     @Override
-    public void emitLoad(CodeGenerator codeGenerator) {
+    public void emitLoad(CodeGeneratorVisitor codeGenerator) {
         // TODO Auto-generated method stub
         
     }
@@ -56,7 +56,7 @@ public class ClassInstanceSymbol extends Symbol
 
 
     @Override
-    public void emitStore(CodeGenerator codeGenerator) {
+    public void emitStore(CodeGeneratorVisitor codeGenerator) {
         // TODO Auto-generated method stub
         
     }

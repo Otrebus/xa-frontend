@@ -1,6 +1,6 @@
 package se.neava.compiler.symbol;
 
-import se.neava.compiler.CodeGenerator;
+import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser;
 import se.neava.compiler.GravelParser.ClassVariableDeclarationContext;
 import se.neava.compiler.type.Type;
@@ -37,7 +37,7 @@ public class ObjectVariableSymbol extends VariableSymbol
         return type;
     }
 
-    public void emitLoad(CodeGenerator codeGenerator) 
+    public void emitLoad(CodeGeneratorVisitor codeGenerator) 
     {
         if(type.getArrayLength() == 0)
             codeGenerator.emitProgramString("push " + type.getSizeStr() + " [" + label + "]");
@@ -45,7 +45,7 @@ public class ObjectVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("push " + label);
     }
 
-    public void emitStore(CodeGenerator codeGenerator) 
+    public void emitStore(CodeGeneratorVisitor codeGenerator) 
     {
         if(type.getArrayLength() == 0)
             codeGenerator.emitProgramString("pop " + type.getSizeStr() + " [" + label + "]");
@@ -53,7 +53,7 @@ public class ObjectVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("pop " + label);
     }
 
-    public void emitArrayLoad(CodeGenerator codeGenerator) 
+    public void emitArrayLoad(CodeGeneratorVisitor codeGenerator) 
     {
         if(type.getArrayLength() == 0)
         {
@@ -77,7 +77,7 @@ public class ObjectVariableSymbol extends VariableSymbol
         }
     }
 
-    public void emitArrayStore(CodeGenerator codeGenerator)  
+    public void emitArrayStore(CodeGeneratorVisitor codeGenerator)  
     {
         if(type.getArrayLength() == 0)
         {

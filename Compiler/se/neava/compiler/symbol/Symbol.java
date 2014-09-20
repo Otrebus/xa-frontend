@@ -1,6 +1,6 @@
 package se.neava.compiler.symbol;
 
-import se.neava.compiler.CodeGenerator;
+import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser;
 import se.neava.compiler.type.Type;
 
@@ -13,9 +13,9 @@ public abstract class Symbol
         return name;
     }
     
-    public abstract void emitArrayLoad(CodeGenerator codeGenerator);
-    public abstract void emitArrayStore(CodeGenerator codeGenerator);
+    public abstract void emitArrayLoad(CodeGeneratorVisitor codeGenerator);
+    public abstract void emitArrayStore(CodeGeneratorVisitor codeGeneratorVisitor);
     
-    public abstract void emitLoad(CodeGenerator codeGenerator);
-    public abstract void emitStore(CodeGenerator codeGenerator);
+    public abstract void emitLoad(CodeGeneratorVisitor codeGeneratorVisitor);
+    public abstract void emitStore(CodeGeneratorVisitor codeGeneratorVisitor);
 }

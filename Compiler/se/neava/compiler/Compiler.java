@@ -18,7 +18,7 @@ public class Compiler
     
     public boolean error()
     {
-        return visitor.error() || parsingError;
+        return visitor.hadError() || parsingError;
     }
     
     public boolean parsingError()
@@ -62,7 +62,7 @@ public class Compiler
         
         visitor = new CodeGeneratorVisitor();
         visitor.visit(parser.program());
-        if(visitor.error())
+        if(visitor.hadError())
             throw new CompileException(visitor.getErrors().get(0));
         if(!visitor.addEntryPoint())
             throw new CompileException(visitor.getErrors().get(0));

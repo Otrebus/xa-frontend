@@ -4,10 +4,12 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Statement;
 
-public interface Instruction extends Statement {
-    
+/*
+ * Base class for all instructions.
+ */
+public interface Instruction extends Statement 
+{
     // Opcodes. Not an enum to make things explicit and help translate it to the vm
-    
     public final static byte OP_PUSHFP = 0x01;
     public final static byte OP_PUSHIMM = 0x02;
     public final static byte OP_PUSHADDR = 0x03;

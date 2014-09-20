@@ -4,6 +4,9 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
+/*
+ * Class representing the Sez instruction.
+ */
 public class Sez implements Instruction 
 {
     String str;

@@ -1,6 +1,5 @@
 package se.neava.compiler.type;
 
-import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 
@@ -34,7 +33,7 @@ public class LongType extends Type implements Cloneable
         return true;            
     }
     
-    public boolean castTo(CodeGenerator gen, Type type)
+    public boolean castTo(CodeGeneratorVisitor gen, Type type)
     {
         if(type instanceof LongType)
             return true;

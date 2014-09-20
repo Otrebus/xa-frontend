@@ -3,7 +3,7 @@ package se.neava.compiler.scope;
 import java.util.LinkedList;
 import java.util.List;
 
-import se.neava.compiler.CodeGenerator;
+import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.CompileException;
 import se.neava.compiler.GravelParser.ClassDefinitionContext;
 import se.neava.compiler.GravelParser.ExternDeclarationContext;
@@ -18,14 +18,14 @@ public class GlobalScope implements Scope
     List<MethodSymbol> externMethods = new LinkedList<MethodSymbol>();
     List<ClassScope> classScopes = new LinkedList<ClassScope>();
     
-    public GlobalScope(CodeGenerator gen, ProgramContext ctx) throws CompileException
+    public GlobalScope(CodeGeneratorVisitor codeGeneratorVisitor, ProgramContext ctx) throws CompileException
     {
         for(ExternDeclarationContext e : ctx.externDeclaration())
             addExternMethod(new MethodSymbol(e));
         for(ClassDefinitionContext e : ctx.classDefinition())
-            addClassScope(new ClassScope(gen, this, e));
+            addClassScope(new ClassScope(codeGeneratorVisitor, this, e));
     }
-    
+
     public MethodSymbol getExternMethod(String name)
     {
         for(MethodSymbol m : externMethods)

@@ -1,6 +1,5 @@
 package se.neava.compiler.type;
 
-import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 
@@ -38,7 +37,7 @@ public class VoidType extends Type
         return this;
     }
     
-    public boolean castTo(CodeGenerator gen, Type type)
+    public boolean castTo(CodeGeneratorVisitor gen, Type type)
     {
         return false;
     }

@@ -4,7 +4,11 @@ import java.text.ParseException;
 
 import se.neava.Assembler.Program;
 
-public class Div implements Instruction {
+/*
+ * Class representing the Div instruction.
+ */
+public class Div implements Instruction 
+{
     String str;
     byte[] code;
     

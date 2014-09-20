@@ -2,6 +2,8 @@ package se.neava.compiler;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -27,29 +29,194 @@ import se.neava.compiler.type.NoType;
 import se.neava.compiler.type.Type;
 import se.neava.compiler.type.VoidType;
 
+/**
+ * Somewhat monolithic visitor class that goes through each rule in the parse tree and generates
+ * assembly code.
+ */
 public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
 {
     Scope currentScope;
     boolean hadError = false;
     List<String> error = new LinkedList<String>();
-    CodeGenerator codeGenerator;
     boolean mute;
     
-    public CodeGenerator getCodeGenerator()
-    {
-        return codeGenerator;
-    }
+    String dataString = "";
+    String programString = ".program\n";
+    String externString = ".extern\n";
+    Set<String> labels = new TreeSet<String>();
+    int labelNo = 0;
     
+    /**
+     * Constructor.
+     */
     CodeGeneratorVisitor()
     {
-        codeGenerator = new CodeGenerator();
     }
     
-    String getCode()
+    /**
+     * Adds a (zero-terminated) string to the data segment.
+     * @param str The string to add.
+     * @return A label pointing to the string.
+     */
+    public String addStringLiteral(String str)
     {
-        return codeGenerator.getCode();
+        String lbl = makeLabel(str.replace(' ', '_'));
+        emitDataLabel(lbl);
+        emitDataString("\"" + str + "\"");
+        return lbl;
     }
     
+    /**
+     * Creates and returns a unique label.
+     * @return The name of the label.
+     */
+    public String makeLabel()
+    {
+        String lbl = "label" + labelNo++;
+        if(labels.contains(lbl))
+            return makeLabel(); // A mischievous user could overflow the stack here
+        labels.add(lbl);
+        return lbl;
+    }
+    
+    /**
+     * Creates and returns a unique label with name based on a provided suggestion.
+     * @param suggestion The preferred label name.
+     * @return The name of the generated label.
+     */
+    public String makeLabel(String suggestion)
+    {
+        String str = suggestion;
+        for(int n = 2; labels.contains(str); n++)
+            str = suggestion + n;
+        labels.add(str);
+        return str;
+    }
+    
+    /**
+     * Returns the code generated so far.
+     * @return the code generated so far.
+     */
+    public String getCode()
+    {
+        return dataString + programString + externString;
+    }
+    
+    // The next number of methods are too numerous and could be replaced by just two with
+    // an additional argument
+    /**
+     * Adds a label to the program segment.
+     * @param str The label to add.
+     */
+    public void emitProgramLabel(String str)
+    {
+        if(!mute)
+            programString += str + ":\n";
+    }
+    
+    /**
+     * Adds a directive to the program segment.
+     * @param str The directive to add.
+     */
+    public void emitProgramDirective(String str)
+    {
+        if(!mute)
+            programString += str + "\n";
+    }
+    
+    /**
+     * Adds an indented line to the program segment.
+     * @param str The line to add.
+     */
+    public void emitProgramString(String str)
+    {
+        if(!mute)
+            programString += "  " + str + "\n";
+    }
+    
+    /**
+     * Adds a label to the data segment.
+     * @param str The label to add.
+     */
+    public void emitDataLabel(String str)
+    {
+        if(!mute)
+            dataString += str + ":\n";
+    }
+    
+    /**
+     * Adds an indented string to the data segment.
+     * @param str The line to add.
+     */
+    public void emitDataString(String str)
+    {
+        if(!mute)
+            dataString += "  " + str + "\n";
+    }
+    
+    /**
+     * Adds a directive to the data segment.
+     * @param str The directive to add.
+     */
+    public void emitDataDirective(String str)
+    {
+        if(!mute)
+            dataString += str + "\n";
+    }
+    
+    /**
+     * Adds a label to the extern segment.
+     * @param str The label to add.
+     */
+    public void emitExternLabel(String str)
+    {
+        if(!mute)
+            externString += str + ":\n";
+    }
+    
+    /**
+     * Adds a string to the extern segment.
+     * @param str The string to add.
+     */
+    public void emitExternString(String str)
+    {
+        if(!mute)
+            externString += "  " + str + "\n";
+    }
+    
+    /**
+     * Adds a directive to the extern segment.
+     * @param str The directive to add.
+     */
+    public void emitExternDirective(String str)
+    {
+        if(!mute)
+            externString += str + "\n";
+    }
+    
+    /**
+     * Stops the code generator from outputting code when visiting parse nodes.
+     */
+    public void mute()
+    {
+        mute = true;
+    }
+    
+    /**
+     * Makes the code generator resume outputting code when visiting parse nodes.
+     */
+    public void unmute()
+    {
+        mute = false;
+    }
+    
+    /**
+     * Adds an error to the error backlog and returns a NoType. Used instead of throwing an
+     * unchecked exception.
+     * @param ctx The rule context from which the error is thrown.
+     * @param str The error string.
+     * @return A NoType type.
+     */
     public NoType reportError(ParserRuleContext ctx, String str)
     {
         hadError = true;
@@ -57,23 +224,35 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return new NoType();
     }
     
+    /**
+     * Returns the list of errors.
+     * @return the list of errors.
+     */
     public List<String> getErrors()
     {
         return error;
     }
     
-    boolean error()
+    /**
+     * Returns true if an error occurred during compilation.
+     * @return True if an error occurred during compilation, false if not.
+     */
+    boolean hadError()
     {
         return hadError;
     }
     
+    /**
+     * Adds the entry point of the program.
+     * @return True if succeeded, false if not.
+     */
     public boolean addEntryPoint()
     {
-        codeGenerator.emitDataDirective(".entry");
-        codeGenerator.emitDataLabel(codeGenerator.makeLabel("dummyEntryObject"));
-        codeGenerator.emitDataln("dword 0");
+        emitDataDirective(".entry");
+        emitDataLabel(makeLabel("dummyEntryObject"));
+        emitDataString("dword 0");
         
-        codeGenerator.emitProgramDirective(".entry");
+        emitProgramDirective(".entry");
         ClassInstanceSymbol mainSym = currentScope.getClassInstance("main");
         if(mainSym == null)
         {
@@ -98,51 +277,62 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             return false;
         }
         
-        if(!mainScope.isObject())
-            codeGenerator.emitProgramString("push " + mainSym.getName());
-        codeGenerator.emitProgramString("push " + mainSym.getName() + "_main");
-        codeGenerator.emitProgramString("push " + mainSym.getName());
-        codeGenerator.emitProgramString("sync");
-        codeGenerator.emitProgramString("ret 0");
+        if(!mainScope.isSingleton())
+            emitProgramString("push " + mainSym.getName());
+        emitProgramString("push " + mainSym.getName() + "_main");
+        emitProgramString("push " + mainSym.getName());
+        emitProgramString("sync");
+        emitProgramString("ret 0");
         return true;
     }
 
+    /**
+     * Visits the topmost rule of the grammar.
+     */
     public Type visitProgram(GravelParser.ProgramContext ctx) 
     {
-        try {
-            currentScope = new GlobalScope(codeGenerator, ctx);
+        try 
+        {
+            currentScope = new GlobalScope(this, ctx);
         } catch (CompileException e) {
             return reportError(null, e.getMessage());
         }
         return visitChildren(ctx); 
     }    
     
+    /**
+     * Visits an extern declaration parse node. Addition of symbols into the symbol table
+     * is handled by the visitProgram method and the GlobalScope class.
+     */
     public Type visitExternDeclaration(GravelParser.ExternDeclarationContext ctx) 
     {
         String name = ctx.identifier().getText();
-        String lbl = codeGenerator.makeLabel(name);
+        String lbl = makeLabel(name);
         currentScope.getMethod(name).setLabel(lbl);
         
-        codeGenerator.emitExternLabel(lbl);
-        codeGenerator.emitExternln("\"" + name + "\"");
+        emitExternLabel(lbl);
+        emitExternString("\"" + name + "\"");
         return new NoType(); 
     }
     
+    /**
+     * Visits a class instance declaration node.
+     */
     public Type visitClassInstanceDeclaration(@NotNull GravelParser.ClassInstanceDeclarationContext ctx) 
     { 
         String className = ctx.identifier(0).getText();
         String identifierName = ctx.identifier(1).getText();
         
-        String lbl = codeGenerator.makeLabel(identifierName);
-        codeGenerator.emitDataLabel(lbl);
+        String lbl = makeLabel(identifierName);
+        emitDataLabel(lbl);
         
         ClassScope classScope = currentScope.getClassScope(className);
         if(classScope == null)
             return reportError(ctx, "Class " + className + " not found");
-        if(classScope.isObject())
+        if(classScope.isSingleton())
             return reportError(ctx, "Object " + identifierName + " is already defined implicitly");
         int size = classScope.getSize();
-        codeGenerator.emitDataln("byte[" + size + "]");
+        emitDataString("byte[" + size + "]");
         ClassInstanceSymbol sym = new ClassInstanceSymbol(classScope, identifierName);
         sym.setLabel(lbl);
         ((GlobalScope)currentScope).addClassInstance(sym);
@@ -150,6 +340,9 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return visitChildren(ctx); 
     }
 
+    /**
+     * Visits the class definition node.
+     */
     public Type visitClassDefinition(GravelParser.ClassDefinitionContext ctx) 
     {
         String name = ctx.identifier().getText();
@@ -159,6 +352,9 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return t;
     }
     
+    /**
+     * Visits the method definition node.
+     */
     public Type visitMethodDefinition(MethodDefinitionContext ctx) 
     { 
         try 
@@ -171,24 +367,31 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         }
         MethodSymbol s = currentScope.getMethod(ctx.identifier(0).getText());
 
-        codeGenerator.emitProgramLabel(s.getLabel());
+        emitProgramLabel(s.getLabel());
         Type t = visitChildren(ctx);
         currentScope = currentScope.getParent();
         return t;
     }
     
+    /**
+     * Visits the method body node.
+     */
     public Type visitMethodBody(MethodBodyContext ctx)
     {
         for(MethodVariableDefinitionContext i : ctx.methodVariableDefinition())
             visit(i);
+        // Make room for local variables on the stack
         if(((MethodScope) currentScope).getLocalVariableSize() > 0)
-            codeGenerator.emitProgramString("push " + ((MethodScope) currentScope).getLocalVariableSize());
+            emitProgramString("push " + ((MethodScope) currentScope).getLocalVariableSize());
         for(StatementContext i : ctx.statement())
             visit(i);
         visit(ctx.returnStatement());
         return new NoType();
     }
     
+    /**
+     * Visits the method variable definition node.
+     */
     public Type visitMethodVariableDefinition(MethodVariableDefinitionContext ctx) 
     { 
         if(!((MethodScope) currentScope).addVariable(ctx.identifier().getText(), Type.createType(ctx.type())))
@@ -196,7 +399,10 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         return visitChildren(ctx); 
     }
     
-    public Type visitIdentifierExp(@NotNull GravelParser.IdentifierExpContext ctx) 
+    /**
+     * Visits the "identifier" type of expression.
+     */
+    public Type visitIdentifierExp(GravelParser.IdentifierExpContext ctx) 
     {
         VariableSymbol s = currentScope.getVariable(ctx.getText());
         if(s == null)
@@ -204,48 +410,64 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             reportError(ctx, "Undeclared identifier " + ctx.getText());
             return new NoType();
         }
-        s.emitLoad(codeGenerator);
+        // Push the variable onto the stack
+        s.emitLoad(this);
         return s.getType();
     }
-       
+    
+    /**
+     * Visits the return statement node.
+     */
     public Type visitReturnStatement(@NotNull GravelParser.ReturnStatementContext ctx) 
     {
         Type t = ctx.expression() != null ? visit(ctx.expression()) : new VoidType();
         if(!t.equals(((MethodScope) currentScope).getMethod().getReturnType()))
             return reportError(ctx, "Return type mismatch.");
         if(t.isPointer())
-            return reportError(ctx, "May not return pointers");
-        MethodScope methodScope = (MethodScope) currentScope;
+            return reportError(ctx, "May not return pointers"); // For encapsulation. This could be
+        MethodScope methodScope = (MethodScope) currentScope;   // relaxed for less dogmatism
         MethodSymbol sym = methodScope.getMethod(methodScope.getName());
+        
+        // Account for possible "this" pointer, and leave room for the return value if it's
+        // bigger than the arguments
         int retSize = sym.getReturnType().getMemorySize();
-        int argSize = sym.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isObject() ? 0 : 2);
+        int argSize = sym.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isSingleton() ? 0 : 2);
         int retImm = Math.max(0, argSize - retSize);
         
         if(!t.equals(new VoidType()))
-            codeGenerator.emitProgramString("pop " + t.getSizeStr() + " [$fp+" + (4 + retImm) + "]");
-        codeGenerator.emitProgramString("ret " + retImm);
+            emitProgramString("pop " + t.getSizeStr() + " [$fp+" + (4 + retImm) + "]");
+        emitProgramString("ret " + retImm);
         return t;
     }
     
+    /**
+     * Visits the literal "number" expression node.
+     */
     public Type visitNumExp(GravelParser.NumExpContext ctx) 
     { 
         String s = ctx.suffix().getText();
         Type type = Type.getTypeFromSuffix(s);
         if(type == null)
             reportError(ctx, "Unknown number suffix");
-        codeGenerator.emitProgramString("push " + type.getSizeStr() + " " + Integer.parseInt(ctx.NUM().getText()));
+        emitProgramString("push " + type.getSizeStr() + " " + Integer.parseInt(ctx.NUM().getText()));
         return type; 
     }
     
+    /**
+     * Visits the "cast" expression node.
+     */
     public Type visitCastExp(GravelParser.CastExpContext ctx)
     {
         Type castType = Type.createType(ctx.baseType());
         Type expType = visit(ctx.expression());
-        if(!expType.castTo(codeGenerator, castType))
+        if(!expType.castTo(this, castType))
             return reportError(ctx, "Illegal cast");
         return castType;
     }
 
+    /**
+     * Visits the "indirection" expression node, which pushes a method pointer onto the stack.
+     */
     public Type visitIndirectionExp(GravelParser.IndirectionExpContext ctx) 
     {
         String objName = ctx.identifier(0).getText();
@@ -260,31 +482,46 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         if(methodSymbol == null)
             return reportError(ctx, "Undeclared method " + methodName);
         
-        codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
-        codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
+        emitProgramString("push " + methodSymbol.getLabel());
+        emitProgramString("push " + classInstanceSymbol.getLabel());
         return new FunctionPointerType(methodSymbol);
     }
 
+    /**
+     * Visits the "true" expression node.
+     */
     public Type visitTrueExp(GravelParser.TrueExpContext ctx) 
     { 
-        codeGenerator.emitProgramString("push byte 1");
+        emitProgramString("push byte 1");
+        return new BoolType();
+    }
+    
+    /**
+     * Visits the "false" expression node.
+     */
+    public Type visitFalseExp(GravelParser.FalseExpContext ctx) 
+    { 
+        emitProgramString("push byte 0");
         return new BoolType();
     }
 
+    /**
+     * Visits the async statement.
+     */
     public Type visitAsyncStatement(GravelParser.AsyncStatementContext ctx) 
     { 
         ClassInstanceSymbol classInstanceSymbol = null;
         MethodSymbol methodSymbol;
         FunctionCallContext c = ctx.functionCall();
         
-        if(c.identifier().size() > 1)
+        if(c.identifier().size() > 1) // If both method name and object name was given
         {
             String objName = c.identifier(0).getText();
             String methodName = c.identifier(1).getText();
             
             classInstanceSymbol = currentScope.getClassInstance(objName);
             if(classInstanceSymbol == null)
-                return reportError(ctx, "Undeclared identifier " + objName);
+                return reportError(ctx, "Undeclared class " + objName);
 
             ClassScope classScope = classInstanceSymbol.getClassScope();
             methodSymbol = classScope.getMethod(methodName);
@@ -300,11 +537,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             {
                 methodSymbol = currentScope.getExternMethod(methodName);
                 if(methodSymbol == null)
-                {
-                    methodSymbol = currentScope.getExternMethod(methodName);
-                    if(methodSymbol == null)
-                        return reportError(ctx, "Undeclared method " + methodName);
-                }
+                    return reportError(ctx, "Undeclared method " + methodName);
             }
         }
 
@@ -320,28 +553,30 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                 return reportError(ctx, "Argument mismatch");
         }
         
-        // Last push is "this", but this is repeated due to the requirements of async
-        // TODO: make this stuff less retarded?
-        if(classInstanceSymbol == null) 
+        // After the regular arguments we might also push a "this" pointer
+        if(classInstanceSymbol == null) // Happens if we only gave the method name and not class
         {
-            if(!((ClassScope) currentScope.getParent()).isObject())
-                codeGenerator.emitProgramString("push word [$fp+4]");
+            // If we are an object (not a singleton), we find our "this" pointer on [$fp+4]
+            if(!((ClassScope) currentScope.getParent()).isSingleton())
+                emitProgramString("push word [$fp+4]");
         }
-        else if(((ClassScope)classInstanceSymbol.getClassScope()).isObject())
-            codeGenerator.emitProgramString("push " + (classInstanceSymbol.getClassScope().getLabel()));
+        else if(!((ClassScope)classInstanceSymbol.getClassScope()).isSingleton())
+            emitProgramString("push " + (classInstanceSymbol.getClassScope().getLabel()));
         
-        codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
+        // After all this, the async instruction still needs an object and a method
+        emitProgramString("push " + methodSymbol.getLabel());
         
         if(classInstanceSymbol == null)
         {
-            if(!((ClassScope) currentScope.getParent()).isObject())
-                codeGenerator.emitProgramString("push word [$fp+4]");
+            if(!((ClassScope) currentScope.getParent()).isSingleton())
+                emitProgramString("push word [$fp+4]");
             else
-                codeGenerator.emitProgramString("push " + ((ClassScope) currentScope.getParent()).getLabel());
+                emitProgramString("push " + ((ClassScope) currentScope.getParent()).getLabel());
         }
         else
-            codeGenerator.emitProgramString("push " + (classInstanceSymbol.getClassScope().getLabel()));
+            emitProgramString("push " + (classInstanceSymbol.getClassScope().getLabel()));
         
+        // Handle the given time expressions - warning, ugly code ahead
         if(ctx.after() != null)
         {
             Type a;
@@ -355,30 +590,30 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                 unit = ctx.time(1).getText();
                 if(unit.equals("msec"))
                 {
-                    codeGenerator.emitProgramString("push dword 1000");
-                    codeGenerator.emitProgramString("mul dword");
+                    emitProgramString("push dword 1000");
+                    emitProgramString("mul dword");
                 }
                 else if(unit.equals("sec"))
                 {
-                    codeGenerator.emitProgramString("push dword 1000000");
-                    codeGenerator.emitProgramString("mul dword");
+                    emitProgramString("push dword 1000000");
+                    emitProgramString("mul dword");
                 }
             }
             else
-                codeGenerator.emitProgramString("push dword 0");
+                emitProgramString("push dword 0");
             a = visit(ctx.expression(0));
             if(!(a instanceof LongType))
                 return reportError(ctx, "Time must be of type long");
             unit = ctx.time(0).getText();
             if(unit.equals("msec"))
             {
-                codeGenerator.emitProgramString("push dword 1000");
-                codeGenerator.emitProgramString("mul dword");
+                emitProgramString("push dword 1000");
+                emitProgramString("mul dword");
             }
             else if(unit.equals("sec"))
             {
-                codeGenerator.emitProgramString("push dword 1000000");
-                codeGenerator.emitProgramString("mul dword");
+                emitProgramString("push dword 1000000");
+                emitProgramString("mul dword");
             }
         }
         else
@@ -390,27 +625,22 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             String unit = ctx.time(0).getText();
             if(unit.equals("msec"))
             {
-                codeGenerator.emitProgramString("push dword 1000");
-                codeGenerator.emitProgramString("mul dword");
+                emitProgramString("push dword 1000");
+                emitProgramString("mul dword");
             }
             else if(unit.equals("sec"))
             {
-                codeGenerator.emitProgramString("push dword 1000000");
-                codeGenerator.emitProgramString("mul dword");
+                emitProgramString("push dword 1000000");
+                emitProgramString("mul dword");
             }
-            codeGenerator.emitProgramString("push dword 0");
+            emitProgramString("push dword 0");
         }
         
-        codeGenerator.emitProgramString("push byte " + (methodSymbol.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isObject() ? 0 : 2)));
-        codeGenerator.emitProgramString("async");
+        emitProgramString("push byte " + (methodSymbol.getTotalArgumentSize() + 
+                ((classInstanceSymbol == null && ((ClassScope) currentScope.getParent()).isSingleton() || classInstanceSymbol != null && classInstanceSymbol.getClassScope().isSingleton()) ? 0 : 2)));
+        emitProgramString("async");
         
         return methodSymbol.getReturnType();
-    }
-
-    public Type visitFalseExp(GravelParser.FalseExpContext ctx) 
-    { 
-        codeGenerator.emitProgramString("push byte 0");
-        return new BoolType();
     }
 
     public Type visitFunctionCallExp(GravelParser.FunctionCallExpContext ctx) 
@@ -439,14 +669,14 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                 return reportError(ctx, "Index must be of type int");
             if(!b.isAssignableFrom(a))
                 return reportError(ctx, "Type mismatch");
-            var.emitArrayStore(codeGenerator);
+            var.emitArrayStore(this);
         }
         else
         {
             Type a = visit(ctx.expression());
             if(!b.isAssignableFrom(a))
                 return reportError(ctx, "Type mismatch");
-            var.emitStore(codeGenerator);
+            var.emitStore(this);
 
         }
         return b;
@@ -454,26 +684,26 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
 
     public Type visitWhileStatement(GravelParser.WhileStatementContext ctx) 
     {
-        String loopLabel = codeGenerator.makeLabel();
-        codeGenerator.emitProgramLabel(loopLabel);
+        String loopLabel = makeLabel();
+        emitProgramLabel(loopLabel);
         Type a = visit(ctx.expression());
         if(!(a instanceof BoolType))
             return reportError(ctx, "Expression in if statement must be of type bool");
-        String endLabel = codeGenerator.makeLabel();
-        codeGenerator.emitProgramString("jez " + endLabel);
+        String endLabel = makeLabel();
+        emitProgramString("jez " + endLabel);
         visit(ctx.statement());
-        codeGenerator.emitProgramString("jmp " + loopLabel);
-        codeGenerator.emitProgramLabel(endLabel);
+        emitProgramString("jmp " + loopLabel);
+        emitProgramLabel(endLabel);
         return new NoType();
     }
 
     public Type visitArrayLookupExp(@NotNull GravelParser.ArrayLookupExpContext ctx)
     {
-        boolean wasMute = codeGenerator.mute;
-        codeGenerator.mute(); // TODO: replace this shit with a straight TypeVisitor
+        boolean wasMute = mute;
+        mute();
         Type a = visit(ctx.expression(0));
         if(!wasMute)
-            codeGenerator.unmute();
+            unmute();
            
         Type t = a.pushFrom(this, ctx).clone();
         t.isArray = false;
@@ -485,7 +715,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         FunctionCallContext c = ctx.functionCall();
         Type t = visit(c);
         if(t.getMemorySize() > 0)
-            codeGenerator.emitProgramString("pop " + t.getMemorySize());
+            emitProgramString("pop " + t.getMemorySize());
         return t;
     }
     
@@ -496,9 +726,9 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             return reportError(ctx, "Method arity mismatch");
         
         int retSize = methodSymbol.getReturnType().getMemorySize();
-        int argSize = methodSymbol.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isObject() ? 0 : 2);
+        int argSize = methodSymbol.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isSingleton() ? 0 : 2);
         if(retSize > argSize)
-            codeGenerator.emitProgramString("push " + (retSize - argSize));
+            emitProgramString("push " + (retSize - argSize));
         
         for(int i = arguments.size() - 1; i >= 0; i--)
         {
@@ -510,11 +740,11 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                 return reportError(ctx, "May not call foreign method with array argument");
         }
         
-        if(!classInstanceSymbol.getClassScope().isObject())
-            codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
-        codeGenerator.emitProgramString("push " + methodSymbol.getLabel());
-        codeGenerator.emitProgramString("push " + classInstanceSymbol.getLabel());
-        codeGenerator.emitProgramString("sync");
+        if(!classInstanceSymbol.getClassScope().isSingleton())
+            emitProgramString("push " + classInstanceSymbol.getLabel());
+        emitProgramString("push " + methodSymbol.getLabel());
+        emitProgramString("push " + classInstanceSymbol.getLabel());
+        emitProgramString("sync");
         return methodSymbol.getReturnType();       
     }
     
@@ -525,9 +755,9 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
             return reportError(ctx, "Method arity mismatch");
         
         int retSize = methodSymbol.getReturnType().getMemorySize();
-        int argSize = methodSymbol.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isObject() ? 0 : 2);
+        int argSize = methodSymbol.getTotalArgumentSize() + (((ClassScope) (currentScope.getParent())).isSingleton() ? 0 : 2);
         if(retSize > argSize)
-            codeGenerator.emitProgramString("push " + (retSize - argSize));
+            emitProgramString("push " + (retSize - argSize));
         
         for(int i = arguments.size() - 1; i >= 0; i--)
         {
@@ -537,17 +767,17 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                 return reportError(ctx, "Argument mismatch");
         }
 
-        if(!((ClassScope) currentScope.getParent()).isObject())
-            codeGenerator.emitProgramString("push word [$fp+4]");
-        codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
+        if(!((ClassScope) currentScope.getParent()).isSingleton())
+            emitProgramString("push word [$fp+4]");
+        emitProgramString("call " + methodSymbol.getLabel());
         return methodSymbol.getReturnType();
     }
     
     public Type visitStringExp(GravelParser.StringExpContext ctx)
     {
         String str = ctx.string().getText().replaceAll("\"", "");
-        String lbl = codeGenerator.addStringLiteral(str);
-        codeGenerator.emitProgramString("push " + lbl);
+        String lbl = addStringLiteral(str);
+        emitProgramString("push " + lbl);
         return new CharType(true);
     }
 
@@ -560,7 +790,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         int retSize = methodSymbol.getReturnType().getMemorySize();
         int argSize = methodSymbol.getTotalArgumentSize();
         if(retSize > argSize)
-            codeGenerator.emitProgramString("push " + (retSize - argSize));
+            emitProgramString("push " + (retSize - argSize));
         
         for(int i = arguments.size() - 1; i >= 0; i--)
         {
@@ -570,7 +800,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
                 return reportError(ctx, "Argument mismatch");
         }
 
-        codeGenerator.emitProgramString("call " + methodSymbol.getLabel());
+        emitProgramString("call " + methodSymbol.getLabel());
         return methodSymbol.getReturnType();
     }
     
@@ -615,8 +845,8 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type mismatch");
-        codeGenerator.emitProgramString("sub " + a.getSizeStr());
-        codeGenerator.emitProgramString("sgz " + a.getSizeStr());
+        emitProgramString("sub " + a.getSizeStr());
+        emitProgramString("sgz " + a.getSizeStr());
         return new BoolType();
     }
     
@@ -631,8 +861,8 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type mismatch");
-        codeGenerator.emitProgramString("sub " + a.getSizeStr());
-        codeGenerator.emitProgramString("sez " + a.getSizeStr());
+        emitProgramString("sub " + a.getSizeStr());
+        emitProgramString("sez " + a.getSizeStr());
         return new BoolType();
     }
     
@@ -642,8 +872,8 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(1));
         if(!a.equals(b))
             return reportError(ctx, "Type mismatch");
-        codeGenerator.emitProgramString("sub " + a.getSizeStr());
-        codeGenerator.emitProgramString("sgz " + a.getSizeStr());
+        emitProgramString("sub " + a.getSizeStr());
+        emitProgramString("sgz " + a.getSizeStr());
         return new BoolType();
     }
     
@@ -653,8 +883,8 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(1));
         if(!a.equals(b))
             return reportError(ctx, "Type mismatch");
-        codeGenerator.emitProgramString("sub " + a.getSizeStr());
-        codeGenerator.emitProgramString("sgez " + a.getSizeStr());
+        emitProgramString("sub " + a.getSizeStr());
+        emitProgramString("sgez " + a.getSizeStr());
         return new BoolType(); 
     }
 
@@ -664,7 +894,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b) || !(a instanceof BoolType))
             return reportError(ctx, "Both arguments to && must be of type bool");
-        codeGenerator.emitProgramString("and byte");
+        emitProgramString("and byte");
         return new BoolType();
     }
 
@@ -674,8 +904,8 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type mismatch");
-        codeGenerator.emitProgramString("sub " + a.getSizeStr());
-        codeGenerator.emitProgramString("sgez " + a.getSizeStr());
+        emitProgramString("sub " + a.getSizeStr());
+        emitProgramString("sgez " + a.getSizeStr());
         return new BoolType(); 
     }
     
@@ -685,7 +915,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b) || !(a instanceof BoolType))
             return reportError(ctx, "Both arguments to || must be of type bool");
-        codeGenerator.emitProgramString("or byte");
+        emitProgramString("or byte");
         return new BoolType();
     }
     
@@ -696,7 +926,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type mismatch");
-        codeGenerator.emitProgramString("or " + a.getSizeStr());
+        emitProgramString("or " + a.getSizeStr());
         return a;
     }
     
@@ -707,7 +937,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type mismatch");
-        codeGenerator.emitProgramString("and " + a.getSizeStr());
+        emitProgramString("and " + a.getSizeStr());
         return a;
     }
     
@@ -718,7 +948,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type mismatch");
-        codeGenerator.emitProgramString("xor " + a.getSizeStr());
+        emitProgramString("xor " + a.getSizeStr());
         return a;
     }
     
@@ -729,8 +959,8 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type mismatch");
-        codeGenerator.emitProgramString("sub " + a.getSizeStr());
-        codeGenerator.emitProgramString("snez " + a.getSizeStr());
+        emitProgramString("sub " + a.getSizeStr());
+        emitProgramString("snez " + a.getSizeStr());
         return new BoolType();
     }
     
@@ -740,7 +970,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type match error in div");
-        codeGenerator.emitProgramString("div " + a.getSizeStr());
+        emitProgramString("div " + a.getSizeStr());
         return a;
     }
 
@@ -750,7 +980,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type match error in add");
-        codeGenerator.emitProgramString("add " + a.getSizeStr());
+        emitProgramString("add " + a.getSizeStr());
         return a;
     }
     
@@ -760,7 +990,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type match error in mul");
-        codeGenerator.emitProgramString("mul " + a.getSizeStr());
+        emitProgramString("mul " + a.getSizeStr());
         return a;
     }
     
@@ -770,7 +1000,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type match error in mul");
-        codeGenerator.emitProgramString("mod " + a.getSizeStr());
+        emitProgramString("mod " + a.getSizeStr());
         return a;
     }
     
@@ -780,7 +1010,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type b = visit(ctx.expression(0));
         if(!a.equals(b))
             return reportError(ctx, "Type match error in sub");
-        codeGenerator.emitProgramString("sub " + a.getSizeStr());
+        emitProgramString("sub " + a.getSizeStr());
         return a;
     }
     @Override
@@ -789,7 +1019,7 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type a = visit(ctx.expression());
         if(!(a instanceof BoolType))
             return reportError(ctx, "Expression in negation must be of type bool");
-        codeGenerator.emitProgramString("sez byte");
+        emitProgramString("sez byte");
         return a;
     }
     
@@ -798,22 +1028,22 @@ public class CodeGeneratorVisitor extends GravelBaseVisitor<Type>
         Type a = visit(ctx.expression());
         if(!(a instanceof BoolType))
             return reportError(ctx, "Expression in if statement must be of type bool");
-        String doneLabel = codeGenerator.makeLabel();
+        String doneLabel = makeLabel();
         if(ctx.elseClause() == null) 
         {
-            codeGenerator.emitProgramString("jez " + doneLabel);
+            emitProgramString("jez " + doneLabel);
             visit(ctx.statement());
         }
         else
         {
-            String elseLabel = codeGenerator.makeLabel();
-            codeGenerator.emitProgramString("jez " + elseLabel);
+            String elseLabel = makeLabel();
+            emitProgramString("jez " + elseLabel);
             visit(ctx.statement());
-            codeGenerator.emitProgramString("jmp " + doneLabel);
-            codeGenerator.emitProgramLabel(elseLabel);
+            emitProgramString("jmp " + doneLabel);
+            emitProgramLabel(elseLabel);
             visit(ctx.elseClause().statement());
         }
-        codeGenerator.emitProgramLabel(doneLabel);
+        emitProgramLabel(doneLabel);
         return new NoType(); 
     }
 }

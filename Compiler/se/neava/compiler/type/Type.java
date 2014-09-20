@@ -1,6 +1,5 @@
 package se.neava.compiler.type;
 
-import se.neava.compiler.CodeGenerator;
 import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.GravelParser.BaseTypeContext;
@@ -48,7 +47,7 @@ public abstract class Type implements Cloneable
         else if(size == 4)
             return "dword";
         else
-            return "bullshit"; // TODO: :p
+            throw new IllegalArgumentException();
     }
 
     
@@ -79,7 +78,7 @@ public abstract class Type implements Cloneable
         return type;
     }
     
-    public static Type createType(BaseTypeContext ctx) // TODO: handle identifier types correctly
+    public static Type createType(BaseTypeContext ctx)
     {
         if(ctx.functionPtr() != null)
             return new FunctionPointerType(ctx.functionPtr());
@@ -97,7 +96,7 @@ public abstract class Type implements Cloneable
             return new VoidType();
         else if(typeStr.equals("bool"))
             return new BoolType();
-        return null;
+        throw new IllegalArgumentException();
     }
     
     public boolean isArray()
@@ -118,16 +117,16 @@ public abstract class Type implements Cloneable
             cgv.reportError(ctx, "Array index must be of type int");
             return new NoType();
         }
-        cgv.getCodeGenerator().emitProgramString("push word " + getElementSize());
-        cgv.getCodeGenerator().emitProgramString("mul word");
+        cgv.emitProgramString("push word " + getElementSize());
+        cgv.emitProgramString("mul word");
         Type a = cgv.visit(ctx.expression(0));
         if(!a.isArray())
         {
             cgv.reportError(ctx, "Array lookup on non-array type");
             return new NoType();
         }
-        cgv.getCodeGenerator().emitProgramString("add word");
-        cgv.getCodeGenerator().emitProgramString("push " + getElementSizeStr());
+        cgv.emitProgramString("add word");
+        cgv.emitProgramString("push " + getElementSizeStr());
         return this;
     }
     
@@ -140,7 +139,7 @@ public abstract class Type implements Cloneable
         return getSize();
     }
     
-    public abstract boolean castTo(CodeGenerator gen, Type type);    
+    public abstract boolean castTo(CodeGeneratorVisitor codeGeneratorVisitor, Type type);    
     public abstract boolean isAssignableFrom(Type type);
     public abstract Type clone();
 

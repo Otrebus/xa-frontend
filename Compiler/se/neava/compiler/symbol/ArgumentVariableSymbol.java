@@ -1,6 +1,6 @@
 package se.neava.compiler.symbol;
 
-import se.neava.compiler.CodeGenerator;
+import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.GravelParser.ArrayLookupExpContext;
 import se.neava.compiler.type.Type;
 
@@ -21,7 +21,7 @@ public class ArgumentVariableSymbol extends VariableSymbol
         this.position = position;
     }
     
-    public void emitArrayLoad(CodeGenerator codeGenerator) 
+    public void emitArrayLoad(CodeGeneratorVisitor codeGenerator) 
     {
         if(type.getArrayLength() == 0)
         {
@@ -47,7 +47,7 @@ public class ArgumentVariableSymbol extends VariableSymbol
         }
     }
 
-    public void emitArrayStore(CodeGenerator codeGenerator) 
+    public void emitArrayStore(CodeGeneratorVisitor codeGenerator) 
     {
         if(type.getArrayLength() == 0)
         {
@@ -73,12 +73,12 @@ public class ArgumentVariableSymbol extends VariableSymbol
         }
     }
 
-    public void emitLoad(CodeGenerator codeGenerator) 
+    public void emitLoad(CodeGeneratorVisitor codeGenerator) 
     {
         codeGenerator.emitProgramString("push " + type.getSizeStr() + " [$fp+" + (4 + position) + "]");
     }
 
-    public void emitStore(CodeGenerator codeGenerator) 
+    public void emitStore(CodeGeneratorVisitor codeGenerator) 
     {
         codeGenerator.emitProgramString("pop " + type.getSizeStr() + " [$fp+" + (4 + position) + "]");
     }

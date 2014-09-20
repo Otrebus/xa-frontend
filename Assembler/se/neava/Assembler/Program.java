@@ -169,8 +169,13 @@ public class Program
         return byteBuffer.array();
     }
     
-    // TODO: remove this 
-    static public String bytesToString(byte[] bytes)
+    /**
+     * Converts an array of bytes to a string of space separated hexadecimal 2-digit values. 
+     * @param bytes The array of bytes to convert.
+     * @return A string of space separated hexadecimal 2-digit values with the elements of the
+     *         parameter as said values.
+     */
+    static String bytesToString(byte[] bytes)
     {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
@@ -179,6 +184,9 @@ public class Program
         return sb.toString();
     }
     
+    /**
+     * Returns the program in text form.
+     */
     public String toString()
     {
         System.out.println("Entry object at: " + String.format("0x%4s", Integer.toHexString(entryObjectPos)).replace(' ', '0'));

@@ -3,7 +3,7 @@ package se.neava.compiler.scope;
 import java.util.LinkedList;
 import java.util.List;
 
-import se.neava.compiler.CodeGenerator;
+import se.neava.compiler.CodeGeneratorVisitor;
 import se.neava.compiler.CompileException;
 import se.neava.compiler.GravelParser.ClassDefinitionContext;
 import se.neava.compiler.GravelParser.ClassVariableDeclarationContext;
@@ -18,18 +18,18 @@ import se.neava.compiler.type.Type;
 public class ClassScope implements Scope 
 {
     private static final int HEADER_SIZE = 4;
-    boolean isObject = false;
+    boolean isSingleton = false;
     GlobalScope parent;
     String className;
     String label;
     List<MethodSymbol> methodSymbols = new LinkedList<MethodSymbol>();
     List<VariableSymbol> variableSymbols = new LinkedList<VariableSymbol>();
     
-    public ClassScope(CodeGenerator gen, GlobalScope parent, ClassDefinitionContext ctx) throws CompileException
+    public ClassScope(CodeGeneratorVisitor codeGeneratorVisitor, GlobalScope parent, ClassDefinitionContext ctx) throws CompileException
     {
         String classType = ctx.classType().getText();
         if(classType.equals("object"))
-            isObject = true;
+            isSingleton = true;
         className = ctx.identifier().getText();
         this.parent = parent;
         for(MethodDefinitionContext c : ctx.methodDefinition())
@@ -37,23 +37,23 @@ public class ClassScope implements Scope
             MethodSymbol s = new MethodSymbol(c);
             if(getMethod(s.getName()) != null)
                 throw new CompileException("Duplicate method " + s.getName() + " in class " + className);
-            String lbl = gen.makeLabel(className + "_" + s.getName());
+            String lbl = codeGeneratorVisitor.makeLabel(className + "_" + s.getName());
             s.setLabel(lbl);
             methodSymbols.add(s);
         }
-        if(isObject)
+        if(isSingleton)
         {
-            label = gen.makeLabel(className);
+            label = codeGeneratorVisitor.makeLabel(className);
             ClassInstanceSymbol sym = new ClassInstanceSymbol(this, className);
             sym.setLabel(label);
             parent.addClassInstance(sym);
-            gen.emitDataLabel(label);
-            gen.emitDataln("dword 0");
+            codeGeneratorVisitor.emitDataLabel(label);
+            codeGeneratorVisitor.emitDataString("dword 0");
             for(ClassVariableDeclarationContext c : ctx.classVariableDeclaration())
             {
-                String label = gen.makeLabel(className + "_" + c.identifier().getText());
+                String label = codeGeneratorVisitor.makeLabel(className + "_" + c.identifier().getText());
                 ObjectVariableSymbol objectVariableSymbol = new ObjectVariableSymbol(c, label);
-                gen.emitDataLabel(label);
+                codeGeneratorVisitor.emitDataLabel(label);
                 //gen.emitDataln("byte[" + objectVariableSymbol.getType().getMemorySize() + "]");
                 //String dataln = "byte[" + type.getMemorySize() + "] ";
                 String dataln = null;
@@ -92,7 +92,7 @@ public class ClassScope implements Scope
                         dataln += ns + " ";
                     }
                 }
-                gen.emitDataln(dataln);
+                codeGeneratorVisitor.emitDataString(dataln);
             }            
         }
         else
@@ -176,9 +176,9 @@ public class ClassScope implements Scope
         return label;
     }
     
-    public boolean isObject()
+    public boolean isSingleton()
     {
-        return isObject;
+        return isSingleton;
     }
     
     public int getSize()
