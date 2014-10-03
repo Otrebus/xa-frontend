@@ -78,7 +78,7 @@ class CommunicationTester
         try 
         { 
             bu = new Communicator(null, 9600);
-            bu.setDebugOutput(false);
+            bu.setDebugOutput(true);
             bu.transmitCode(bytes, 5);
             bu.setEventHandler(new MyEventHandler());
             while(true)

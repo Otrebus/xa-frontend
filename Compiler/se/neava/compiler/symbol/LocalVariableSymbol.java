@@ -33,10 +33,9 @@ public class LocalVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
-            codeGenerator.emitProgramString("push word [$fp-" + position + "]"); // Array address now on top
+            codeGenerator.emitProgramString("push $fp-" + position + ""); // Array address now on top
             codeGenerator.emitProgramString("add word"); // Add with offset
 
-            codeGenerator.emitProgramString("add word"); // Add with offset
             codeGenerator.emitProgramString("push " + type.getElementSizeStr()); // Data element now on top
         }
     }
@@ -59,21 +58,26 @@ public class LocalVariableSymbol extends VariableSymbol
             codeGenerator.emitProgramString("push word " + type.getElementSize());
             codeGenerator.emitProgramString("mul word"); // Offset into the array now on top of the stack
             
-            codeGenerator.emitProgramString("push word [$fp-" + position + "]"); // Array address now on top
+            codeGenerator.emitProgramString("push $fp-" + position + ""); // Array address now on top
             codeGenerator.emitProgramString("add word"); // Add with offset
 
-            codeGenerator.emitProgramString("add word"); // Add with offset
             codeGenerator.emitProgramString("pop " + type.getElementSizeStr()); // Pop to element
         }
     }
 
     public void emitLoad(CodeGeneratorVisitor codeGenerator) 
     {
-        codeGenerator.emitProgramString("push " + type.getSizeStr() + " [$fp-" + position + "]");
+        if(type.getArrayLength() == 0)
+            codeGenerator.emitProgramString("push " + type.getSizeStr() + " [$fp-" + position + "]");
+        else
+            codeGenerator.emitProgramString("push " + " $fp-" + position + "");
     }
 
     public void emitStore(CodeGeneratorVisitor codeGenerator) 
     {
-        codeGenerator.emitProgramString("pop " + type.getSizeStr() + " [$fp-" + position + "]");
+        if(type.getArrayLength() == 0)
+            codeGenerator.emitProgramString("pop " + type.getSizeStr() + " [$fp-" + position + "]");
+        else
+            codeGenerator.emitProgramString("pop " + " $fp-" + position + "");
     }
 }

@@ -38,8 +38,7 @@ public class NoType extends Type implements Cloneable {
 
     @Override
     public Type pushFrom(CodeGeneratorVisitor codeGen, ArrayLookupExpContext ctx) {
-        // TODO Auto-generated method stub
-        return null;
+        return new NoType();
     }
     
 
